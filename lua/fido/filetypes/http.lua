@@ -27,6 +27,7 @@ end
 return function()
   return require('fido').fetch({
     name = 'HTTP',
+    vertical = true,
     execute = function(params)
       local args = vim.list_extend({
         '--silent',
