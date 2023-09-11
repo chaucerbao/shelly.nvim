@@ -2,8 +2,9 @@ return function()
   return require('fido').fetch({
     name = 'Node',
     vertical = true,
-    execute = function(params)
-      return 'node ' .. table.concat(params.flags, ' '), params.body
+    parse_buffer = true,
+    execute = function(buffer)
+      return 'node ' .. table.concat(buffer.flags, ' '), buffer.body
     end,
   })
 end

@@ -28,16 +28,17 @@ return function()
   return require('fido').fetch({
     name = 'HTTP',
     vertical = true,
-    execute = function(params)
+    parse_buffer = true,
+    execute = function(buffer)
       local args = vim.list_extend({
         '--silent',
         '--show-error',
         '--location',
         '--include',
-      }, params.flags)
+      }, buffer.flags)
 
       local method, url, path = 'GET', '', ''
-      for _, line in pairs(params.header) do
+      for _, line in pairs(buffer.header) do
         local http = parse_http(line)
 
         if http then
@@ -55,7 +56,7 @@ return function()
 
       local body = vim.tbl_filter(function(line)
         return not string.find(line, regex.empty_line)
-      end, params.body)
+      end, buffer.body)
 
       -- Parse HTTP schema from the body
       if #body > 0 then
@@ -116,7 +117,7 @@ return function()
           .. '"'
       )
 
-      return 'curl ' .. table.concat(args, ' ')
+      return 'curl ' .. table.concat(args, ' '), nil
     end,
 
     process = function(lines)

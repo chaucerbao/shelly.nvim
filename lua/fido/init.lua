@@ -104,7 +104,7 @@ local function render(params, lines)
   vim.cmd(starting_winnr .. 'wincmd w')
 end
 
-local function parse_body()
+local function parse_buffer()
   local lines = vim.fn.getline(1, '$')
   local cursor_index = vim.fn.line('.')
 
@@ -164,7 +164,7 @@ end
 
 return {
   fetch = function(params)
-    local cmd, stdin = params.execute(parse_body())
+    local cmd, stdin = params.execute(params.parse_buffer and parse_buffer() or nil)
 
     local job_id = vim.fn.jobstart(cmd, {
       stdout_buffered = true,
