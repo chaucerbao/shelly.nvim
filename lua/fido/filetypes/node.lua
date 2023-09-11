@@ -1,5 +1,15 @@
 return {
-  setup = function() end,
+  setup = function()
+    vim.api.nvim_create_autocmd({ 'FileType' }, {
+      group = vim.api.nvim_create_augroup('NodeSyntax', {}),
+      pattern = { 'node' },
+      callback = function(args)
+        vim.defer_fn(function()
+          vim.bo.syntax = 'javascript'
+        end, 0)
+      end,
+    })
+  end,
 
   fetch = function()
     return require('fido').fetch({

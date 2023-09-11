@@ -2,7 +2,17 @@
 local regex = require('fido.regex')
 
 return {
-  setup = function() end,
+  setup = function()
+    vim.api.nvim_create_autocmd({ 'FileType' }, {
+      group = vim.api.nvim_create_augroup('PsqlSyntax', {}),
+      pattern = { 'psql' },
+      callback = function(args)
+        vim.defer_fn(function()
+          vim.bo.syntax = 'sql'
+        end, 0)
+      end,
+    })
+  end,
 
   fetch = function()
     return require('fido').fetch({
