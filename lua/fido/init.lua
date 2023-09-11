@@ -191,13 +191,13 @@ return {
 
   fetch_by_filetype = function()
     if vim.bo.filetype == 'http' then
-      filetypes.http()
+      filetypes.http.fetch()
     elseif vim.bo.filetype == 'node' then
-      filetypes.node()
+      filetypes.node.fetch()
     elseif vim.bo.filetype == 'psql' then
-      filetypes.psql()
+      filetypes.psql.fetch()
     elseif vim.bo.filetype == 'redis' then
-      filetypes.redis()
+      filetypes.redis.fetch()
     end
   end,
 }
