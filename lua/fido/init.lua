@@ -86,7 +86,8 @@ local function apply_variables(header, body)
   }
 end
 
-local function render(params, lines)
+local render
+render = function(params, lines)
   local starting_winnr = vim.fn.bufwinnr('%')
 
   local window = create_window_pair(params)
@@ -95,7 +96,13 @@ local function render(params, lines)
   -- Replace scratch buffer contents
   vim.bo.readonly = false
   vim.cmd('silent normal gg"_dG')
-  vim.api.nvim_buf_set_lines(0, 0, 0, false, params.process and params.process(lines, window) or lines)
+  vim.api.nvim_buf_set_lines(
+    0,
+    0,
+    0,
+    false,
+    params.process and params.process(lines, { window = window, render = render }) or lines
+  )
   vim.bo.readonly = true
 
   -- Go to the top
