@@ -21,7 +21,7 @@ local function parse_http(line)
 end
 
 local function escape_quotes(line)
-  return vim.trim(line):gsub("'", "'\\''")
+  return vim.trim(line):gsub('"', '\\"'):gsub("'", "'\\''")
 end
 
 return {
