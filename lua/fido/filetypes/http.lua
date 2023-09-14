@@ -20,8 +20,16 @@ local function parse_http(line)
   return { method = method, url = url, path = path }
 end
 
+local function escape_single_quotes(line)
+  return vim.trim(line):gsub("'", "'\\''")
+end
+
+local function escape_double_quotes(line)
+  return vim.trim(line):gsub('"', '\\"')
+end
+
 local function escape_quotes(line)
-  return vim.trim(line):gsub('"', '\\"'):gsub("'", "'\\''")
+  return escape_double_quotes(escape_single_quotes(line))
 end
 
 return {
@@ -105,7 +113,7 @@ return {
               )
             else
               -- JSON
-              table.insert(args, "--data '" .. table.concat(data, ' ') .. "'")
+              table.insert(args, "--data '" .. table.concat(vim.tbl_map(escape_single_quotes, data), ' ') .. "'")
             end
           end
         end
