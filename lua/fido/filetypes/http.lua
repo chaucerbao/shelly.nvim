@@ -105,7 +105,7 @@ return {
               )
             else
               -- JSON
-              table.insert(args, "--data '" .. table.concat(vim.tbl_map(escape_quotes, data), ' ') .. "'")
+              table.insert(args, "--data '" .. table.concat(data, ' ') .. "'")
             end
           end
         end
