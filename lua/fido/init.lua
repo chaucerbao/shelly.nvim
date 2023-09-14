@@ -170,6 +170,10 @@ local function parse_buffer()
 end
 
 return {
+  setup = function()
+    filetypes.setup()
+  end,
+
   fetch = function(params)
     local cmd, stdin = params.execute(params.parse_buffer and parse_buffer() or nil)
 

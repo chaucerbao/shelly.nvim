@@ -3,9 +3,9 @@ return {
     vim.api.nvim_create_autocmd({ 'FileType' }, {
       group = vim.api.nvim_create_augroup('NodeSyntax', {}),
       pattern = { 'node' },
-      callback = function(args)
+      callback = function()
         vim.defer_fn(function()
-          vim.bo.syntax = 'javascript'
+          vim.bo.syntax = 'typescript'
         end, 0)
       end,
     })

@@ -6,7 +6,7 @@ return {
     vim.api.nvim_create_autocmd({ 'FileType' }, {
       group = vim.api.nvim_create_augroup('PsqlSyntax', {}),
       pattern = { 'psql' },
-      callback = function(args)
+      callback = function()
         vim.defer_fn(function()
           vim.bo.syntax = 'sql'
         end, 0)
