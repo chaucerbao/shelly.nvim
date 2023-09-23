@@ -5,6 +5,7 @@ local regex = require('fido.regex')
 -- Helpers
 local function create_window_reference(winnr)
   return {
+    winid = vim.fn.win_getid(winnr),
     winnr = winnr,
     bufnr = vim.fn.winbufnr(winnr),
     focus = function()
