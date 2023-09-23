@@ -5,7 +5,7 @@ return {
         name = 'Shell',
         vertical = args.bang,
         execute = function()
-          return args.args:gsub('%%', vim.fn.expand('%')), nil
+          return args.args:gsub('%%', '"' .. vim.fn.expand('%') .. '"'), nil
         end,
       })
     end, { nargs = '*', bang = true })
