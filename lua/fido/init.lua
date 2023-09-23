@@ -89,7 +89,7 @@ end
 
 local render
 render = function(params, lines)
-  local starting_winnr = vim.fn.bufwinnr('%')
+  local starting_winid = vim.fn.win_getid()
 
   local window = create_window_pair(params)
   window.child.focus()
@@ -109,7 +109,7 @@ render = function(params, lines)
   -- Go to the top
   vim.cmd('normal gg')
 
-  vim.cmd(starting_winnr .. 'wincmd w')
+  vim.fn.win_gotoid(starting_winid)
 end
 
 local function parse_buffer()
