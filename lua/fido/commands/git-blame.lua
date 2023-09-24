@@ -5,6 +5,7 @@ return {
 
       require('fido').fetch({
         name = 'GitBlame',
+        size = 50,
         vertical = true,
         execute = function()
           local args = {
