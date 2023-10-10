@@ -33,7 +33,17 @@ local function escape_quotes(line)
 end
 
 return {
-  setup = function() end,
+  setup = function()
+    vim.api.nvim_create_autocmd({ 'FileType' }, {
+      group = vim.api.nvim_create_augroup('FidoHttp', {}),
+      pattern = { 'http' },
+      callback = function()
+        vim.defer_fn(function()
+          vim.bo.commentstring = '# %s'
+        end, 0)
+      end,
+    })
+  end,
 
   fetch = function()
     return require('fido').fetch({

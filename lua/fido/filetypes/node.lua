@@ -1,10 +1,11 @@
 return {
   setup = function()
     vim.api.nvim_create_autocmd({ 'FileType' }, {
-      group = vim.api.nvim_create_augroup('NodeSyntax', {}),
+      group = vim.api.nvim_create_augroup('FidoNode', {}),
       pattern = { 'node' },
       callback = function()
         vim.defer_fn(function()
+          vim.bo.commentstring = '// %s'
           vim.bo.syntax = 'typescript'
         end, 0)
       end,

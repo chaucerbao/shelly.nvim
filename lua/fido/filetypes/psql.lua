@@ -4,10 +4,11 @@ local regex = require('fido.regex')
 return {
   setup = function()
     vim.api.nvim_create_autocmd({ 'FileType' }, {
-      group = vim.api.nvim_create_augroup('PsqlSyntax', {}),
+      group = vim.api.nvim_create_augroup('FidoPsql', {}),
       pattern = { 'psql' },
       callback = function()
         vim.defer_fn(function()
+          vim.bo.commentstring = '-- %s'
           vim.bo.syntax = 'sql'
         end, 0)
       end,
