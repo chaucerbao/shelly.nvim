@@ -14,8 +14,7 @@ return {
   key_equals_value = '^%s*(%S+)%s*=%s*(%S.*)%s*$',
 
   -- Git
-  tracked_file = '^.*%S+:%s*(%S+)%s*$',
-  untracked_file = '^[\t%s]*(%S+)%s*$',
+  tracked_file = '^.*:%s*(%S+.*%S+)%s*$',
 
   -- HTTP
   method_url = '^%s*(%S+)%s+(%S+://%S+)%s*$',

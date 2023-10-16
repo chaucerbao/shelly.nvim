@@ -26,11 +26,9 @@ local function parse_files()
 
   local files = {}
   for _, line in pairs(lines) do
-    if string.find(line, regex.tracked_file) then
-      local file = string.match(line, regex.tracked_file)
-      table.insert(files, file)
-    elseif string.find(line, regex.untracked_file) then
-      local file = string.match(line, regex.untracked_file)
+    local file = vim.fn.trim((string.find(line, regex.tracked_file) and string.match(line, regex.tracked_file)) or line)
+
+    if vim.fn.filereadable(file) > 0 then
       table.insert(files, file)
     end
   end
@@ -47,7 +45,7 @@ end
 local function execute_on_files(command)
   local files = parse_files()
 
-  if #files then
+  if #files > 0 then
     os.execute(command .. ' -- ' .. table.concat(
       vim.tbl_map(function(file)
         return '"' .. file .. '"'
@@ -70,6 +68,15 @@ return {
         end,
         process = function(lines, args)
           args.window.child.focus()
+
+          vim.keymap.set('n', '<Enter>', function()
+            local files = parse_files()
+
+            if #files > 0 then
+              args.window.parent.focus()
+              vim.cmd('edit ' .. files[1] .. '')
+            end
+          end, { buffer = true })
 
           if params.stage_mapping and vim.fn.mapcheck(params.stage_mapping, 'n') == '' then
             vim.keymap.set({ 'n', 'v' }, params.stage_mapping, function()
