@@ -100,7 +100,7 @@ render = function(params, lines)
   vim.api.nvim_buf_set_lines(
     0,
     0,
-    0,
+    -1,
     false,
     params.process and params.process(lines, { window = window, render = render }) or lines
   )
