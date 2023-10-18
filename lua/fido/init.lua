@@ -206,10 +206,10 @@ return {
       filetypes.http.fetch()
     elseif vim.bo.filetype == 'node' then
       filetypes.node.fetch()
-    elseif vim.bo.filetype == 'psql' then
-      filetypes.psql.fetch()
     elseif vim.bo.filetype == 'redis' then
       filetypes.redis.fetch()
+    elseif vim.bo.filetype == 'sql' then
+      filetypes.sql.fetch()
     end
   end,
 }
