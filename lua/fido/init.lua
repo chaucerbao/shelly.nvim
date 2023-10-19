@@ -183,6 +183,10 @@ return {
       on_stdout = function(job_id, data, event)
         render(params, data)
       end,
+      stderr_buffered = true,
+      on_stderr = function(job_id, data, event)
+        render(params, data)
+      end,
       on_exit = function()
         print(cmd)
       end,
