@@ -181,10 +181,20 @@ return {
     local job_id = vim.fn.jobstart(cmd, {
       stdout_buffered = true,
       on_stdout = function(job_id, data, event)
+        -- End of stream is `{ '' }`
+        if #data == 1 and data[1] == '' then
+          return
+        end
+
         render(params, data)
       end,
       stderr_buffered = true,
       on_stderr = function(job_id, data, event)
+        -- End of stream is `{ '' }`
+        if #data == 1 and data[1] == '' then
+          return
+        end
+
         render(params, data)
       end,
       on_exit = function()
