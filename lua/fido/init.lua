@@ -7,14 +7,12 @@ local function trim_lines(lines)
   local start_index, end_index = nil, nil
 
   for i, line in ipairs(lines) do
-    if start_index == nil then
-      if not string.find(line, regex.empty_line) then
+    if not string.find(line, regex.empty_line) then
+      if start_index == nil then
         start_index = i
       end
-    else
-      if not string.find(line, regex.empty_line) then
-        end_index = i
-      end
+
+      end_index = i
     end
   end
 
@@ -110,10 +108,9 @@ local function apply_variables(header, body)
 end
 
 local render
-render = function(params, lines)
+render = function(lines, params, window)
   local starting_winid = vim.fn.win_getid()
 
-  local window = create_window_pair(params)
   window.child.focus()
 
   -- Replace scratch buffer contents
@@ -208,10 +205,12 @@ return {
         vim.list_extend(output, lines)
       end
 
-      render(params, output)
+      render(output, params, create_window_pair(params))
     end
 
     local job_id = vim.fn.jobstart(cmd, {
+      stdout_buffered = true,
+      stderr_buffered = true,
       on_stdout = render_output,
       on_stderr = render_output,
       on_exit = function()
