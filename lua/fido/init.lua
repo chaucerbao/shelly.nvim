@@ -3,6 +3,28 @@ local filetypes = require('fido.filetypes')
 local regex = require('fido.regex')
 
 -- Helpers
+local function trim_lines(lines)
+  local start_index, end_index = nil, nil
+
+  for i, line in ipairs(lines) do
+    if start_index == nil then
+      if not string.find(line, regex.empty_line) then
+        start_index = i
+      end
+    else
+      if not string.find(line, regex.empty_line) then
+        end_index = i
+      end
+    end
+  end
+
+  if start_index == nil and end_index == nil then
+    return {}
+  end
+
+  return vim.list_slice(lines, start_index, end_index)
+end
+
 local function create_window_reference(winnr)
   return {
     winid = vim.fn.win_getid(winnr),
@@ -178,25 +200,20 @@ return {
   fetch = function(params)
     local cmd, stdin = params.execute(params.parse_buffer and parse_buffer() or nil)
 
+    local output = {}
+    local function render_output(job_id, data, event)
+      local lines = trim_lines(data)
+
+      if #lines > 0 then
+        vim.list_extend(output, lines)
+      end
+
+      render(params, output)
+    end
+
     local job_id = vim.fn.jobstart(cmd, {
-      stdout_buffered = true,
-      on_stdout = function(job_id, data, event)
-        -- End of stream is `{ '' }`
-        if #data == 1 and data[1] == '' then
-          return
-        end
-
-        render(params, data)
-      end,
-      stderr_buffered = true,
-      on_stderr = function(job_id, data, event)
-        -- End of stream is `{ '' }`
-        if #data == 1 and data[1] == '' then
-          return
-        end
-
-        render(params, data)
-      end,
+      on_stdout = render_output,
+      on_stderr = render_output,
       on_exit = function()
         print(cmd)
       end,
