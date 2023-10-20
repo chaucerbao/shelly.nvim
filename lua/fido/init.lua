@@ -111,6 +111,12 @@ local render
 render = function(lines, params, window)
   local starting_winid = vim.fn.win_getid()
 
+  if window == nil then
+    window = create_window_pair(params)
+  end
+
+  lines = trim_lines(lines)
+
   window.child.focus()
 
   -- Replace scratch buffer contents

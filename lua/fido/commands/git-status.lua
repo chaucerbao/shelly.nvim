@@ -52,9 +52,9 @@ local function execute_on_files(command)
       end, files),
       ' '
     ))
-
-    return format_stdout(vim.fn.systemlist(git_status))
   end
+
+  return format_stdout(vim.fn.systemlist(git_status))
 end
 
 return {
@@ -81,7 +81,7 @@ return {
           if params.stage_mapping and vim.fn.mapcheck(params.stage_mapping, 'n') == '' then
             vim.keymap.set({ 'n', 'v' }, params.stage_mapping, function()
               local current_line = vim.fn.line('.')
-              args.render({ name = name }, execute_on_files('git add'))
+              args.render(execute_on_files('git add'), { name = name })
               vim.cmd('silent normal ' .. current_line .. 'G')
             end, { buffer = true })
           end
@@ -89,7 +89,7 @@ return {
           if params.unstage_mapping and vim.fn.mapcheck(params.unstage_mapping, 'n') == '' then
             vim.keymap.set({ 'n', 'v' }, params.unstage_mapping, function()
               local current_line = vim.fn.line('.')
-              args.render({ name = name }, execute_on_files('git restore --staged'))
+              args.render(execute_on_files('git restore --staged'), { name = name })
               vim.cmd('silent normal ' .. current_line .. 'G')
             end, { buffer = true })
           end
@@ -97,7 +97,7 @@ return {
           if params.refresh_mapping and vim.fn.mapcheck(params.refresh_mapping, 'n') == '' then
             vim.keymap.set('n', params.refresh_mapping, function()
               local current_line = vim.fn.line('.')
-              args.render({ name = name }, format_stdout(vim.fn.systemlist(git_status)))
+              args.render(format_stdout(vim.fn.systemlist(git_status)), { name = name })
               vim.cmd('silent normal ' .. current_line .. 'G')
             end, { buffer = true })
           end
