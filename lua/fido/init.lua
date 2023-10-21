@@ -108,14 +108,9 @@ local function apply_variables(header, body)
 end
 
 local render
-render = function(lines, params, window)
-  local starting_winid = vim.fn.win_getid()
-
-  if window == nil then
-    window = create_window_pair(params)
-  end
-
-  lines = trim_lines(lines)
+render = function(_lines, params, _window)
+  local window = _window or create_window_pair(params)
+  local lines = trim_lines(_lines)
 
   window.child.focus()
 
@@ -133,8 +128,6 @@ render = function(lines, params, window)
 
   -- Go to the top
   vim.cmd('normal gg')
-
-  vim.fn.win_gotoid(starting_winid)
 end
 
 local function parse_buffer()
@@ -201,7 +194,10 @@ return {
   end,
 
   fetch = function(params)
+    local starting_winid = vim.fn.win_getid()
+
     local cmd, stdin = params.execute(params.parse_buffer and parse_buffer() or nil)
+    local window = create_window_pair(params)
 
     local output = {}
     local function render_output(job_id, data, event)
@@ -211,7 +207,7 @@ return {
         vim.list_extend(output, lines)
       end
 
-      render(output, params, create_window_pair(params))
+      render(output, params, window)
     end
 
     local job_id = vim.fn.jobstart(cmd, {
@@ -220,6 +216,14 @@ return {
       on_stdout = render_output,
       on_stderr = render_output,
       on_exit = function()
+        if params.focus == 'parent' then
+          window.parent.focus()
+        elseif params.focus == 'child' then
+          window.child.focus()
+        else
+          vim.fn.win_gotoid(starting_winid)
+        end
+
         print(cmd)
       end,
     })

@@ -7,6 +7,7 @@ return {
         name = 'GitBlame',
         size = 50,
         vertical = true,
+        focus = 'child',
         execute = function()
           local args = {
             '-c',
@@ -30,7 +31,6 @@ return {
         end,
         process = function(lines, args)
           vim.defer_fn(function()
-            args.window.child.focus()
             vim.cmd('silent normal ' .. current_line .. 'Gzz')
           end, 0)
 

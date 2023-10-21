@@ -63,12 +63,11 @@ return {
       require('fido').fetch({
         name = name,
         size = 50,
+        focus = 'child',
         execute = function()
           return git_status, nil
         end,
         process = function(lines, args)
-          args.window.child.focus()
-
           vim.keymap.set('n', '<Enter>', function()
             local files = parse_files()
 
@@ -78,33 +77,29 @@ return {
             end
           end, { buffer = true })
 
+          local function render_and_jump(lines)
+            local current_line = vim.fn.line('.')
+            args.render(lines, { name = name })
+            vim.cmd('silent normal ' .. current_line .. 'G')
+          end
+
           if params.stage_mapping and vim.fn.mapcheck(params.stage_mapping, 'n') == '' then
             vim.keymap.set({ 'n', 'v' }, params.stage_mapping, function()
-              local current_line = vim.fn.line('.')
-              args.render(execute_on_files('git add'), { name = name })
-              vim.cmd('silent normal ' .. current_line .. 'G')
+              render_and_jump(execute_on_files('git add'))
             end, { buffer = true })
           end
 
           if params.unstage_mapping and vim.fn.mapcheck(params.unstage_mapping, 'n') == '' then
             vim.keymap.set({ 'n', 'v' }, params.unstage_mapping, function()
-              local current_line = vim.fn.line('.')
-              args.render(execute_on_files('git restore --staged'), { name = name })
-              vim.cmd('silent normal ' .. current_line .. 'G')
+              render_and_jump(execute_on_files('git restore --staged'))
             end, { buffer = true })
           end
 
           if params.refresh_mapping and vim.fn.mapcheck(params.refresh_mapping, 'n') == '' then
             vim.keymap.set('n', params.refresh_mapping, function()
-              local current_line = vim.fn.line('.')
-              args.render(format_stdout(vim.fn.systemlist(git_status)), { name = name })
-              vim.cmd('silent normal ' .. current_line .. 'G')
+              render_and_jump(format_stdout(vim.fn.systemlist(git_status)))
             end, { buffer = true })
           end
-
-          vim.defer_fn(function()
-            args.window.child.focus()
-          end, 0)
 
           return format_stdout(lines)
         end,
