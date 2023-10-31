@@ -2,6 +2,8 @@
 local filetypes = require('fido.filetypes')
 local regex = require('fido.regex')
 
+local setup_params = {}
+
 -- Helpers
 local function trim_lines(lines)
   local start_index, end_index = nil, nil
@@ -60,10 +62,22 @@ local function create_window_pair(params)
     child_winnr = vim.fn.winnr()
   end
 
-  return {
+  local window = {
     parent = create_window_reference(parent_winnr),
     child = create_window_reference(child_winnr),
   }
+
+  if setup_params.close_mapping and vim.fn.mapcheck(setup_params.close_mapping, 'n') == '' then
+    for _, window_reference in pairs(window) do
+      vim.keymap.set('n', setup_params.close_mapping, function()
+        vim.cmd(window.child.bufnr .. 'bdelete')
+        window.parent.focus()
+        vim.keymap.del('n', setup_params.close_mapping, { buffer = window.parent.bufnr })
+      end, { buffer = window_reference.bufnr })
+    end
+  end
+
+  return window
 end
 
 local function apply_variables(header, body)
@@ -189,7 +203,8 @@ local function parse_buffer()
 end
 
 return {
-  setup = function()
+  setup = function(params)
+    setup_params = params
     filetypes.setup()
   end,
 
