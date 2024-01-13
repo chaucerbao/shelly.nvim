@@ -28,7 +28,9 @@ end
 local function create_window_reference(winid)
   return {
     winid = winid,
-    bufnr = vim.fn.winbufnr(winid),
+    bufnr = function()
+      return vim.fn.winbufnr(winid)
+    end,
     focus = function()
       vim.fn.win_gotoid(winid)
     end,
@@ -69,10 +71,10 @@ local function create_window_pair(params)
   if setup_params.close_mapping and vim.fn.mapcheck(setup_params.close_mapping, 'n') == '' then
     for _, window_reference in pairs(window) do
       vim.keymap.set('n', setup_params.close_mapping, function()
-        vim.cmd(window.child.bufnr .. 'bdelete')
+        vim.cmd(window.child.bufnr() .. 'bdelete')
         window.parent.focus()
-        vim.keymap.del('n', setup_params.close_mapping, { buffer = window.parent.bufnr })
-      end, { buffer = window_reference.bufnr })
+        vim.keymap.del('n', setup_params.close_mapping, { buffer = window.parent.bufnr() })
+      end, { buffer = window_reference.bufnr() })
     end
   end
 
