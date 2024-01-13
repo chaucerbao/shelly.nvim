@@ -25,13 +25,12 @@ local function trim_lines(lines)
   return vim.list_slice(lines, start_index, end_index)
 end
 
-local function create_window_reference(winnr)
+local function create_window_reference(winid)
   return {
-    winid = vim.fn.win_getid(winnr),
-    winnr = winnr,
-    bufnr = vim.fn.winbufnr(winnr),
+    winid = winid,
+    bufnr = vim.fn.winbufnr(winid),
     focus = function()
-      vim.cmd(winnr .. 'wincmd w')
+      vim.fn.win_gotoid(winid)
     end,
   }
 end
@@ -39,10 +38,10 @@ end
 local function create_window_pair(params)
   local name = vim.fn.escape('[' .. params.name .. ']', '[]')
 
-  local parent_winnr = vim.fn.bufwinnr('%')
-  local child_winnr = vim.fn.bufwinnr(name)
+  local parent_winid = vim.fn.bufwinid('%')
+  local child_winid = vim.fn.bufwinid(name)
 
-  if child_winnr < 0 then
+  if child_winid < 0 then
     if params.vertical then
       local winwidth = vim.fn.winwidth(0)
       vim.cmd('vnew ' .. name)
@@ -59,12 +58,12 @@ local function create_window_pair(params)
     vim.bo.buftype = 'nofile'
     vim.bo.swapfile = false
 
-    child_winnr = vim.fn.winnr()
+    child_winid = vim.fn.win_getid()
   end
 
   local window = {
-    parent = create_window_reference(parent_winnr),
-    child = create_window_reference(child_winnr),
+    parent = create_window_reference(parent_winid),
+    child = create_window_reference(child_winid),
   }
 
   if setup_params.close_mapping and vim.fn.mapcheck(setup_params.close_mapping, 'n') == '' then
