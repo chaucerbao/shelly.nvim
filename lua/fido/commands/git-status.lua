@@ -28,7 +28,7 @@ local function parse_files()
   for _, line in pairs(lines) do
     local file = vim.fn.trim((string.find(line, regex.tracked_file) and string.match(line, regex.tracked_file)) or line)
 
-    if vim.fn.strlen(vim.fn.glob(file)) > 0 then
+    if vim.fn.filereadable(file) > 0 then
       table.insert(files, file)
     end
   end
