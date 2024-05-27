@@ -83,20 +83,20 @@ return {
             vim.cmd('silent normal ' .. current_line .. 'G')
           end
 
-          if params.stage_mapping and vim.fn.mapcheck(params.stage_mapping, 'n') == '' then
-            vim.keymap.set({ 'n', 'v' }, params.stage_mapping, function()
+          if params.mappings.stage_files then
+            vim.keymap.set({ 'n', 'v' }, params.mappings.stage_files, function()
               render_and_jump(execute_on_files('git add'))
             end, { buffer = true })
           end
 
-          if params.unstage_mapping and vim.fn.mapcheck(params.unstage_mapping, 'n') == '' then
-            vim.keymap.set({ 'n', 'v' }, params.unstage_mapping, function()
+          if params.mappings.unstage_files then
+            vim.keymap.set({ 'n', 'v' }, params.mappings.unstage_files, function()
               render_and_jump(execute_on_files('git restore --staged'))
             end, { buffer = true })
           end
 
-          if params.refresh_mapping and vim.fn.mapcheck(params.refresh_mapping, 'n') == '' then
-            vim.keymap.set('n', params.refresh_mapping, function()
+          if params.mappings.refresh then
+            vim.keymap.set('n', params.mappings.refresh, function()
               render_and_jump(format_stdout(vim.fn.systemlist(git_status)))
             end, { buffer = true })
           end
