@@ -173,18 +173,25 @@ local function parse_buffer()
 
   local min_index = 1
   local max_index = #lines
-  for _, separator_index in pairs(body_separator_indexes) do
-    -- If the `cursor_index` is on a separator, move it to the next section
-    if cursor_index == separator_index and cursor_index < #lines then
-      cursor_index = cursor_index + 1
-    end
+  if string.find(vim.fn.mode():lower(), '^v') ~= nil then
+    -- Visual Selection
+    local selected_lines = { vim.fn.line('v'), vim.fn.line('.') }
+    table.sort(selected_lines)
+    min_index, max_index = selected_lines[1], selected_lines[2]
+  else
+    for _, separator_index in pairs(body_separator_indexes) do
+      -- If the `cursor_index` is on a separator, move it to the next section
+      if cursor_index == separator_index and cursor_index < #lines then
+        cursor_index = cursor_index + 1
+      end
 
-    -- Find the section that the `cursor_index` is in
-    if separator_index < cursor_index and separator_index > 1 then
-      min_index = separator_index + 1
-    end
-    if separator_index > cursor_index and separator_index < max_index then
-      max_index = separator_index - 1
+      -- Find the section that the `cursor_index` is in
+      if separator_index < cursor_index and separator_index > 1 then
+        min_index = separator_index + 1
+      end
+      if separator_index > cursor_index and separator_index < max_index then
+        max_index = separator_index - 1
+      end
     end
   end
 
