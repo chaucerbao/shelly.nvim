@@ -1,6 +1,6 @@
 local filetypes = {
   http = require('fido.filetypes.http'),
-  node = require('fido.filetypes.node'),
+  javascript = require('fido.filetypes.javascript'),
   redis = require('fido.filetypes.redis'),
   sql = require('fido.filetypes.sql'),
 }

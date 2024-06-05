@@ -260,8 +260,8 @@ return {
   fetch_by_filetype = function()
     if vim.bo.filetype == 'http' then
       filetypes.http.fetch()
-    elseif vim.bo.filetype == 'node' then
-      filetypes.node.fetch()
+    elseif vim.bo.filetype == 'javascript' then
+      filetypes.javascript.fetch()
     elseif vim.bo.filetype == 'redis' then
       filetypes.redis.fetch()
     elseif vim.bo.filetype == 'sql' then
