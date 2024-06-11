@@ -12,7 +12,7 @@ local function create_key_value_line_pattern(separator)
 end
 
 --- @param lines string[]
---- @return lines string[]
+--- @return string[]
 local function trim_lines(lines)
   return vim.tbl_filter(
     function(line)
@@ -41,6 +41,12 @@ local function escape_quotes(line, type)
   return line
 end
 
+local function exit_visual_mode()
+  if vim.fn.mode():match('^[Vv]') then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', false, true, true), 'nx', false)
+  end
+end
+
 return {
   uri_pattern = uri_pattern,
   uri_line_pattern = create_line_pattern(uri_pattern),
@@ -53,4 +59,6 @@ return {
 
   trim_lines = trim_lines,
   escape_quotes = escape_quotes,
+
+  exit_visual_mode = exit_visual_mode,
 }
