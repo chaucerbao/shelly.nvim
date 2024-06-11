@@ -1,7 +1,9 @@
 local buffers = require('shelly.buffers')
 local commands = require('shelly.commands')
+local config = require('shelly.config')
 local filetypes = require('shelly.filetypes')
 
+--- @alias config { mappings?: { close?: string } }
 --- @alias range { syntax: string, range: [number, number] }
 --- @alias fence { syntax: string, range: [number, number], lines: string[] }
 --- @alias scope { lines: string[], variables: { [string]: string } }
@@ -27,6 +29,7 @@ local function evaluate()
 end
 
 return {
+  setup = config.setup,
   evaluate = evaluate,
   commands = commands,
 }

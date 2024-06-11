@@ -1,3 +1,4 @@
+local config = require('shelly.config')
 local utils = require('shelly.utils')
 
 --- Gets all fences in the buffer
@@ -142,6 +143,16 @@ local function render_scratch_buffer(lines, options)
     vim.schedule(function()
       vim.bo[vim.fn.winbufnr(scratch_winid)].buftype = 'nofile'
     end)
+
+    local current_config = config.get()
+    if current_config.mappings and current_config.mappings.close then
+      vim.keymap.set(
+        { 'n' },
+        current_config.mappings.close,
+        ':' .. scratch_bufnr .. 'bdelete<CR>',
+        { silent = true, buffer = scratch_bufnr }
+      )
+    end
   end
 
   local scratch_bufnr = vim.fn.winbufnr(scratch_winid)
