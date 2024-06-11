@@ -1,4 +1,5 @@
 local buffers = require('shelly.buffers')
+local commands = require('shelly.commands')
 local filetypes = require('shelly.filetypes')
 
 --- @alias range { syntax: string, range: [number, number] }
@@ -27,4 +28,5 @@ end
 
 return {
   evaluate = evaluate,
+  commands = commands,
 }
