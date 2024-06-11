@@ -51,6 +51,15 @@ local function git_status(args, callback)
   end)
 end
 
+local function edit_selected_files()
+  local filenames = vim.tbl_map(function(file)
+    return file.filename
+  end, get_selected_files())
+
+  vim.cmd.wincmd('p')
+  vim.cmd.edit(filenames[1])
+end
+
 local function stage_selected_files()
   local filenames = vim.tbl_map(function(file)
     return file.filename
@@ -80,6 +89,10 @@ local function create(command, options)
       local scratch_bufnr = vim.fn.winbufnr(scratch_winid)
 
       if options.mappings then
+        if options.mappings.edit then
+          vim.keymap.set({ 'n', 'v' }, options.mappings.edit, edit_selected_files, { buffer = scratch_bufnr })
+        end
+
         if options.mappings.stage then
           vim.keymap.set({ 'n', 'v' }, options.mappings.stage, stage_selected_files, { buffer = scratch_bufnr })
         end
