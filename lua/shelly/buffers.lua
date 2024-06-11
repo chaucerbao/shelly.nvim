@@ -130,13 +130,18 @@ local function render_scratch_buffer(lines, options)
       or ''
 
     vim.cmd(size .. (options.vertical and 'vnew' or 'new') .. ' ' .. name)
-
-    vim.bo.buftype = 'nofile'
-    vim.bo.bufhidden = 'hide'
-    vim.bo.swapfile = false
-    vim.bo.buflisted = false
-
     scratch_winid = vim.fn.win_getid()
+
+    local scratch_bufnr = vim.fn.winbufnr(scratch_winid)
+
+    vim.bo[scratch_bufnr].bufhidden = 'hide'
+    vim.bo[scratch_bufnr].swapfile = false
+    vim.bo[scratch_bufnr].buflisted = false
+
+    -- Allow LSP to attach
+    vim.schedule(function()
+      vim.bo[vim.fn.winbufnr(scratch_winid)].buftype = 'nofile'
+    end)
   end
 
   local scratch_bufnr = vim.fn.winbufnr(scratch_winid)
