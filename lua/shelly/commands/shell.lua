@@ -14,7 +14,7 @@ local function create(command)
 
         vim.schedule(function()
           local scratch_winid = buffers.render_scratch_buffer(
-            vim.split((job.code == 0) and job.stdout or job.stderr, '\n'),
+            vim.split((#job.stdout > 0) and job.stdout or job.stderr, '\n'),
             { name = 'Shell', filetype = 'text', size = 40, vertical = args.bang }
           )
 
