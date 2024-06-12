@@ -109,7 +109,9 @@ local function evaluate(scope, fence)
 
   table.insert(cmd, url)
 
-  vim.system(cmd, { text = true, timeout = 5 * 1000 }, function(job)
+  utils.run_shell_commands({ { cmd } }, function(jobs)
+    local job = jobs[1]
+
     vim.schedule(function()
       local mime_to_filetype = {
         css = 'css',

@@ -66,7 +66,7 @@ local function run_shell_commands(commands, callback, state)
   local cmd = commands[state.index][1]
   local system_options = commands[state.index][2] or {}
 
-  vim.system(cmd, vim.tbl_extend('force', { text = true, timeout = 5 * 1000 }, system_options), function(job)
+  vim.system(cmd, vim.tbl_extend('force', { text = true, timeout = 10 * 1000 }, system_options), function(job)
     table.insert(state.jobs, job)
 
     run_shell_commands(commands, callback, { index = state.index + 1, jobs = state.jobs })

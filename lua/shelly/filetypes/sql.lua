@@ -49,7 +49,9 @@ local function evaluate(scope, fence)
 
   vim.list_extend(cmd, args)
 
-  vim.system(cmd, { stdin = body, text = true, timeout = 5 * 1000 }, function(job)
+  utils.run_shell_commands({ { cmd, { stdin = body } } }, function(jobs)
+    local job = jobs[1]
+
     vim.schedule(function()
       local scratch_winid = buffers.render_scratch_buffer(
         vim.split((job.code == 0) and job.stdout or job.stderr, '\n'),

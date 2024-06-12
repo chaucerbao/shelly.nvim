@@ -1,4 +1,5 @@
 local buffers = require('shelly.buffers')
+local utils = require('shelly.utils')
 
 --- @param command string
 local function create(command)
@@ -8,7 +9,9 @@ local function create(command)
     end, args.fargs)
 
     if #cmd > 0 then
-      vim.system(cmd, { text = true, timeout = 5 * 1000 }, function(job)
+      utils.run_shell_commands({ { cmd } }, function(jobs)
+        local job = jobs[1]
+
         vim.schedule(function()
           local scratch_winid = buffers.render_scratch_buffer(
             vim.split((job.code == 0) and job.stdout or job.stderr, '\n'),

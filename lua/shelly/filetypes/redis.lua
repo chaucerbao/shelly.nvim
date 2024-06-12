@@ -44,7 +44,9 @@ local function evaluate(scope, fence)
   table.insert(cmd, '-u')
   table.insert(cmd, connection_uri)
 
-  vim.system(cmd, { stdin = body, text = true, timeout = 5 * 1000 }, function(job)
+  utils.run_shell_commands({ { cmd, { stdin = body } } }, function(jobs)
+    local job = jobs[1]
+
     vim.schedule(function()
       local scratch_winid = buffers.render_scratch_buffer(
         vim.split((job.code == 0) and job.stdout or job.stderr, '\n'),
