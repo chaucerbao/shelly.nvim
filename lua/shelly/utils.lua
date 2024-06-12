@@ -47,7 +47,7 @@ local function exit_visual_mode()
   end
 end
 
---- @param commands string[][]
+--- @param commands [string[], table<string, unknown>?][]
 --- @param callback? fun(jobs: unknown[]): nil
 --- @param state? { index: number, jobs: unknown[] }
 local function run_shell_commands(commands, callback, state)
@@ -63,7 +63,10 @@ local function run_shell_commands(commands, callback, state)
     return
   end
 
-  vim.system(commands[state.index], { text = true, timeout = 5 * 1000 }, function(job)
+  local cmd = commands[state.index][1]
+  local system_options = commands[state.index][2] or {}
+
+  vim.system(cmd, vim.tbl_extend('force', { text = true, timeout = 5 * 1000 }, system_options), function(job)
     table.insert(state.jobs, job)
 
     run_shell_commands(commands, callback, { index = state.index + 1, jobs = state.jobs })

@@ -38,7 +38,7 @@ end
 --- @param args? { bang?: boolean  }
 --- @param callback? fun(scratch_winid: number): nil
 local function git_status(args, callback)
-  utils.run_shell_commands({ { 'git', 'status', '--porcelain' } }, function(jobs)
+  utils.run_shell_commands({ { { 'git', 'status', '--porcelain' } } }, function(jobs)
     local job = jobs[1]
 
     vim.schedule(function()
@@ -74,7 +74,7 @@ local function stage_selected_files()
     table.insert(filenames, file.filenames[#file.filenames])
   end
 
-  utils.run_shell_commands({ vim.list_extend({ 'git', 'add', '--' }, filenames) }, git_status)
+  utils.run_shell_commands({ { vim.list_extend({ 'git', 'add', '--' }, filenames) } }, git_status)
 end
 
 local function unstage_selected_files()
@@ -94,11 +94,11 @@ local function unstage_selected_files()
 
   local commands = {}
   if #unstage_filenames > 0 then
-    table.insert(commands, vim.list_extend({ 'git', 'restore', '--staged', '--' }, unstage_filenames))
+    table.insert(commands, { vim.list_extend({ 'git', 'restore', '--staged', '--' }, unstage_filenames) })
   end
   if #rename_filenames > 0 then
     for _, filenames in ipairs(rename_filenames) do
-      table.insert(commands, vim.list_extend({ 'git', 'mv', '--' }, { filenames[2], filenames[1] }))
+      table.insert(commands, { vim.list_extend({ 'git', 'mv', '--' }, { filenames[2], filenames[1] }) })
     end
   end
 
