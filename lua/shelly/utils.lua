@@ -47,6 +47,29 @@ local function exit_visual_mode()
   end
 end
 
+--- @param commands string[][]
+--- @param callback? fun(jobs: unknown[]): nil
+--- @param state? { index: number, jobs: unknown[] }
+local function run_shell_commands(commands, callback, state)
+  state = state or {}
+  state.index = state.index or 1
+  state.jobs = state.jobs or {}
+
+  if state.index > #commands then
+    if callback then
+      callback(state.jobs)
+    end
+
+    return
+  end
+
+  vim.system(commands[state.index], { text = true, timeout = 5 * 1000 }, function(job)
+    table.insert(state.jobs, job)
+
+    run_shell_commands(commands, callback, { index = state.index + 1, jobs = state.jobs })
+  end)
+end
+
 return {
   uri_pattern = uri_pattern,
   uri_line_pattern = create_line_pattern(uri_pattern),
@@ -61,4 +84,5 @@ return {
   escape_quotes = escape_quotes,
 
   exit_visual_mode = exit_visual_mode,
+  run_shell_commands = run_shell_commands,
 }

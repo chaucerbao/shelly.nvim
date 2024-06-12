@@ -1,7 +1,7 @@
 local buffers = require('shelly.buffers')
 local utils = require('shelly.utils')
 
---- @return { status: string, filename: string }[]
+--- @return { status: [string, string], filenames: string[] }[]
 local function get_selected_files()
   local file_status_pattern = '^(..)%s+(.*%S)%s*$'
 
@@ -19,13 +19,16 @@ local function get_selected_files()
 
   local files = {}
   for _, line in ipairs(buffer_lines) do
-    local status, filename = line:match(file_status_pattern)
+    local status, description = line:match(file_status_pattern)
+    local filenames = vim.split(description, ' -> ', { plain = true })
 
-    if status and filename then
-      table.insert(
-        files,
-        { status = status, filename = (filename:find('^"[^"]+"$') ~= nil) and filename:sub(2, -2) or filename }
-      )
+    if status and #filenames > 0 then
+      table.insert(files, {
+        status = { status:sub(1, 1), status:sub(2, 2) },
+        filenames = vim.tbl_map(function(filename)
+          return (filename:find('^"[^"]+"$') ~= nil) and filename:sub(2, -2) or filename
+        end, filenames),
+      })
     end
   end
 
@@ -35,7 +38,9 @@ end
 --- @param args? { bang?: boolean  }
 --- @param callback? fun(scratch_winid: number): nil
 local function git_status(args, callback)
-  vim.system({ 'git', 'status', '--porcelain' }, { text = true, timeout = 5 * 1000 }, function(job)
+  utils.run_shell_commands({ { 'git', 'status', '--porcelain' } }, function(jobs)
+    local job = jobs[1]
+
     vim.schedule(function()
       local scratch_winid = buffers.render_scratch_buffer(
         vim.split((job.code == 0) and job.stdout or job.stderr, '\n'),
@@ -52,32 +57,52 @@ local function git_status(args, callback)
 end
 
 local function edit_selected_files()
-  local filenames = vim.tbl_map(function(file)
-    return file.filename
-  end, get_selected_files())
+  local files = get_selected_files()
+  if #files == 0 then
+    print('No selection')
+  end
 
   vim.cmd.wincmd('p')
-  vim.cmd.edit(filenames[1])
+  vim.cmd.edit(files[1].filenames[#files[1].filenames])
 end
 
 local function stage_selected_files()
-  local filenames = vim.tbl_map(function(file)
-    return file.filename
-  end, get_selected_files())
+  local files = get_selected_files()
 
-  vim.system(vim.list_extend({ 'git', 'add', '--' }, filenames), { text = true, timeout = 5 * 1000 }, git_status)
+  local filenames = {}
+  for _, file in ipairs(files) do
+    table.insert(filenames, file.filenames[#file.filenames])
+  end
+
+  utils.run_shell_commands({ vim.list_extend({ 'git', 'add', '--' }, filenames) }, git_status)
 end
 
 local function unstage_selected_files()
-  local filenames = vim.tbl_map(function(file)
-    return file.filename
-  end, get_selected_files())
+  local files = get_selected_files()
 
-  vim.system(
-    vim.list_extend({ 'git', 'restore', '--staged', '--' }, filenames),
-    { text = true, timeout = 5 * 1000 },
-    git_status
-  )
+  local unstage_filenames = {}
+  local rename_filenames = {}
+  for _, file in ipairs(files) do
+    if #file.filenames == 1 then
+      table.insert(unstage_filenames, file.filenames[1])
+    else
+      if file.status[1] == 'R' then
+        table.insert(rename_filenames, file.filenames)
+      end
+    end
+  end
+
+  local commands = {}
+  if #unstage_filenames > 0 then
+    table.insert(commands, vim.list_extend({ 'git', 'restore', '--staged', '--' }, unstage_filenames))
+  end
+  if #rename_filenames > 0 then
+    for _, filenames in ipairs(rename_filenames) do
+      table.insert(commands, vim.list_extend({ 'git', 'mv', '--' }, { filenames[2], filenames[1] }))
+    end
+  end
+
+  utils.run_shell_commands(commands, git_status)
 end
 
 --- @param command string
