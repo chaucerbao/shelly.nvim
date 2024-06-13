@@ -43,7 +43,7 @@ local function git_status(args, callback)
 
     vim.schedule(function()
       local scratch_winid = buffers.render_scratch_buffer(
-        vim.split((#job.stdout > 0) and job.stdout or job.stderr, '\n'),
+        vim.split(job.stderr .. job.stdout, '\n'),
         { name = 'Git', filetype = 'text', size = 40, vertical = args and args.bang or false }
       )
 
