@@ -80,26 +80,50 @@ end
 local function unstage_selected_files()
   local files = get_selected_files()
 
-  local unstage_filenames = {}
-  local rename_filenames = {}
+  local renamed_filenames = {}
+  local filenames = {}
   for _, file in ipairs(files) do
-    if #file.filenames == 1 then
-      table.insert(unstage_filenames, file.filenames[1])
+    if file.status[1] == 'R' then
+      table.insert(renamed_filenames, file.filenames)
     else
-      if file.status[1] == 'R' then
-        table.insert(rename_filenames, file.filenames)
-      end
+      table.insert(filenames, file.filenames[1])
     end
   end
 
   local commands = {}
-  if #unstage_filenames > 0 then
-    table.insert(commands, { vim.list_extend({ 'git', 'restore', '--staged', '--' }, unstage_filenames) })
-  end
-  if #rename_filenames > 0 then
-    for _, filenames in ipairs(rename_filenames) do
+  if #renamed_filenames > 0 then
+    for _, filenames in ipairs(renamed_filenames) do
       table.insert(commands, { vim.list_extend({ 'git', 'mv', '--' }, { filenames[2], filenames[1] }) })
     end
+  end
+  if #filenames > 0 then
+    table.insert(commands, { vim.list_extend({ 'git', 'restore', '--staged', '--' }, filenames) })
+  end
+
+  utils.run_shell_commands(commands, git_status)
+end
+
+local function restore_selected_files()
+  local files = get_selected_files()
+
+  local renamed_filenames = {}
+  local filenames = {}
+  for _, file in ipairs(files) do
+    if file.status[1] == 'R' then
+      table.insert(renamed_filenames, file.filenames)
+    end
+
+    table.insert(filenames, file.filenames[1])
+  end
+
+  local commands = {}
+  if #renamed_filenames > 0 then
+    for _, filenames in ipairs(renamed_filenames) do
+      table.insert(commands, { vim.list_extend({ 'git', 'mv', '--' }, { filenames[2], filenames[1] }) })
+    end
+  end
+  if #filenames > 0 then
+    table.insert(commands, { vim.list_extend({ 'git', 'restore', '--' }, filenames) })
   end
 
   utils.run_shell_commands(commands, git_status)
@@ -124,6 +148,10 @@ local function create(command, options)
 
         if options.mappings.unstage then
           vim.keymap.set({ 'n', 'v' }, options.mappings.unstage, unstage_selected_files, { buffer = scratch_bufnr })
+        end
+
+        if options.mappings.restore then
+          vim.keymap.set({ 'n', 'v' }, options.mappings.restore, restore_selected_files, { buffer = scratch_bufnr })
         end
 
         if options.mappings.refresh then
