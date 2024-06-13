@@ -140,7 +140,7 @@ local function evaluate(scope, fence)
       end
 
       local scratch_winid = buffers.render_scratch_buffer(
-        vim.split(job.stderr .. job.stdout, '\n'),
+        vim.split(vim.trim(job.stdout):len() > 0 and job.stdout or job.stderr, '\n'),
         { name = 'HTTP', filetype = filetype, size = 40, vertical = true }
       )
 

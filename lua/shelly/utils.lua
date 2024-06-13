@@ -1,5 +1,5 @@
 local uri_pattern = '(%a+://.*%S)'
-local arg_pattern = '(%-?%-%w.*%S)'
+local arg_pattern = '(%-?%-%w.*%S*)'
 
 --- @param pattern string
 local function create_line_pattern(pattern)
