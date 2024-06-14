@@ -1,6 +1,10 @@
 local config = require('shelly.config')
 local utils = require('shelly.utils')
 
+local syntax_alias = {
+  js = 'javascript',
+}
+
 --- Gets all fences in the buffer
 --- @return range[]
 local function get_fences()
@@ -13,7 +17,9 @@ local function get_fences()
     local fence_end = line:match('^%s*```%s*$')
 
     if fence_start and not current_fence and i < #buffer_lines then
-      current_fence = { syntax = fence_start:lower(), range = { i + 1 } }
+      local syntax = fence_start:lower()
+
+      current_fence = { syntax = syntax_alias[syntax] or syntax, range = { i + 1 } }
     elseif fence_end and current_fence then
       table.insert(current_fence.range, i - 1)
       table.insert(fences, current_fence)
