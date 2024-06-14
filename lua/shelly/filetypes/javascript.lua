@@ -39,7 +39,7 @@ local function evaluate(scope, fence)
 
     vim.schedule(function()
       local scratch_winid = buffers.render_scratch_buffer(
-        vim.split(job.stderr .. job.stdout, '\n'),
+        vim.split((vim.trim(job.stderr):len() > 0 and (job.stderr .. '\n') or '') .. job.stdout, '\n'),
         { name = 'JavaScript', filetype = 'text', size = 40, vertical = true }
       )
 
