@@ -44,7 +44,7 @@ local function evaluate(scope, fence)
 
   -- Parse Fence
   local method, url, body = nil, nil, {}
-  for _, line in ipairs(utils.trim_lines(fence.lines)) do
+  for _, line in ipairs(utils.remove_empty_lines(fence.lines)) do
     if #body == 0 then
       local http_method, http_url = nil, nil
       local arg = line:match(utils.arg_line_pattern)
@@ -124,7 +124,7 @@ local function evaluate(scope, fence)
 
       -- Parse Response Headers
       local filetype = 'text'
-      for _, line in ipairs(utils.trim_lines(vim.split(job.stderr, '\n'))) do
+      for _, line in ipairs(utils.remove_empty_lines(vim.split(job.stderr, '\n'))) do
         local key, value = line:match(header_line_pattern)
 
         if key and is_header(key) and key:lower() == 'content-type' then

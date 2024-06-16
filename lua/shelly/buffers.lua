@@ -85,7 +85,7 @@ local function get_scope(max_line)
       end
     end
   end
-  scope_lines = utils.trim_lines(scope_lines)
+  scope_lines = utils.remove_empty_lines(scope_lines)
 
   -- Variables
   local variables = {}

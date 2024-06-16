@@ -13,7 +13,7 @@ end
 
 --- @param lines string[]
 --- @return string[]
-local function trim_lines(lines)
+local function remove_empty_lines(lines)
   return vim.tbl_filter(
     function(line)
       return #line > 0
@@ -83,7 +83,7 @@ return {
   create_line_pattern = create_line_pattern,
   create_key_value_line_pattern = create_key_value_line_pattern,
 
-  trim_lines = trim_lines,
+  remove_empty_lines = remove_empty_lines,
   escape_quotes = escape_quotes,
 
   exit_visual_mode = exit_visual_mode,
