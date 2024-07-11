@@ -29,7 +29,7 @@ local function evaluate(scope, fence)
 
   -- Parse Scope
   for _, line in ipairs(scope.lines) do
-    local url = line:match(utils.url_line_pattern)
+    local url = line:match(utils.uri_line_pattern)
     local arg = line:match(utils.arg_line_pattern)
     local key, value = line:match(header_line_pattern)
 
