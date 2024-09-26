@@ -21,6 +21,10 @@ local function evaluate()
   if global and fence then
     for syntax, evaluate_filetype in pairs(syntax_evaluator) do
       if fence.syntax == syntax then
+        if vim.bo.filetype == '' then
+          vim.bo.filetype = 'markdown'
+        end
+
         evaluate_filetype(global, fence)
         break
       end
