@@ -5,9 +5,9 @@ local function is_header(line)
   return line:match('^(%w)') ~= nil
 end
 
---- @param scope scope
+--- @param global global
 --- @param fence fence
-local function evaluate(scope, fence)
+local function evaluate(global, fence)
   local url_prefix = ''
   local args = {
     '--location', -- Follow redirects
@@ -27,8 +27,8 @@ local function evaluate(scope, fence)
     utils.create_line_pattern('(/.*%S)'),
   }
 
-  -- Parse Scope
-  for _, line in ipairs(scope.lines) do
+  -- Parse Global
+  for _, line in ipairs(global.lines) do
     local url = line:match(utils.uri_line_pattern)
     local arg = line:match(utils.arg_line_pattern)
     local key, value = line:match(header_line_pattern)

@@ -1,14 +1,14 @@
 local buffers = require('shelly.buffers')
 local utils = require('shelly.utils')
 
---- @param scope scope
+--- @param global global
 --- @param fence fence
-local function evaluate(scope, fence)
+local function evaluate(global, fence)
   local connection_uri = ''
   local args = {}
 
-  -- Parse Scope
-  for _, line in ipairs(scope.lines) do
+  -- Parse Global
+  for _, line in ipairs(global.lines) do
     local uri = line:match(utils.uri_line_pattern)
     local arg = line:match(utils.arg_line_pattern)
 

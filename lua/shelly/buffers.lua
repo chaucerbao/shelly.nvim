@@ -41,7 +41,7 @@ local function get_current_fence()
   end
 
   for _, fence in ipairs(get_fences()) do
-    if fence.syntax ~= 'scope' and current_line >= fence.range[1] - 1 and current_line <= fence.range[2] + 1 then
+    if fence.syntax ~= 'global' and current_line >= fence.range[1] - 1 and current_line <= fence.range[2] + 1 then
       local range_start, range_end =
         (current_region and math.max(fence.range[1], current_region[1]) or fence.range[1]),
         current_region and math.min(fence.range[2], current_region[2]) or fence.range[2]
@@ -68,30 +68,30 @@ local function expand_variables(variables, lines)
   end, lines)
 end
 
---- Gets all `scope` fences up to the `max_line`
+--- Gets all `global` fences up to the `max_line`
 --- @param max_line number | nil
---- @return scope
-local function get_scope(max_line)
+--- @return global
+local function get_global(max_line)
   -- Lines
-  local scope_lines = {}
+  local global_lines = {}
   for _, fence in ipairs(get_fences()) do
     if max_line and fence.range[1] > max_line then
       break
     end
 
-    if fence.syntax == 'scope' then
+    if fence.syntax == 'global' then
       for _, line in ipairs(vim.api.nvim_buf_get_lines(0, fence.range[1] - 1, fence.range[2], false)) do
-        table.insert(scope_lines, line)
+        table.insert(global_lines, line)
       end
     end
   end
-  scope_lines = utils.remove_empty_lines(scope_lines)
+  global_lines = utils.remove_empty_lines(global_lines)
 
   -- Variables
   local variables = {}
   local non_variable_lines = {}
   local variable_line_pattern = utils.create_key_value_line_pattern('=')
-  for _, line in ipairs(scope_lines) do
+  for _, line in ipairs(global_lines) do
     local key, value = line:match(variable_line_pattern)
 
     if key and value then
@@ -108,8 +108,8 @@ local function get_scope(max_line)
   return { lines = expand_variables(variables, non_variable_lines), variables = variables }
 end
 
---- Gets the scope and current fence
---- @return scope | nil
+--- Gets the global and current fence
+--- @return global | nil
 --- @return fence | nil
 local function parse_buffer()
   local selected_fence = get_current_fence()
@@ -118,10 +118,10 @@ local function parse_buffer()
     return
   end
 
-  local scope = get_scope(selected_fence.range[1])
+  local global = get_global(selected_fence.range[1])
 
-  return scope,
-    vim.tbl_extend('force', selected_fence, { lines = expand_variables(scope.variables, selected_fence.lines) })
+  return global,
+    vim.tbl_extend('force', selected_fence, { lines = expand_variables(global.variables, selected_fence.lines) })
 end
 
 --- @param lines string[]

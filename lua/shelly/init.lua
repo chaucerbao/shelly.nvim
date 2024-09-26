@@ -6,7 +6,7 @@ local filetypes = require('shelly.filetypes')
 --- @alias config { mappings?: { close?: string } }
 --- @alias range { syntax: string, range: [number, number] }
 --- @alias fence { syntax: string, range: [number, number], lines: string[] }
---- @alias scope { lines: string[], variables: { [string]: string } }
+--- @alias global { lines: string[], variables: { [string]: string } }
 
 local syntax_evaluator = {
   http = filetypes.http.evaluate,
@@ -16,12 +16,12 @@ local syntax_evaluator = {
 }
 
 local function evaluate()
-  local scope, fence = buffers.parse_buffer()
+  local global, fence = buffers.parse_buffer()
 
-  if scope and fence then
+  if global and fence then
     for syntax, evaluate_filetype in pairs(syntax_evaluator) do
       if fence.syntax == syntax then
-        evaluate_filetype(scope, fence)
+        evaluate_filetype(global, fence)
         break
       end
     end
