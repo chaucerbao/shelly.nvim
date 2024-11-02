@@ -31,8 +31,16 @@ local function evaluate(global, fence)
     end
   end
 
-  local cmd = { 'node' }
-  vim.list_extend(cmd, args)
+  local cmd = {}
+  if vim.fn.executable('deno') > 0 then
+    cmd = { 'deno', 'eval' }
+    vim.list_extend(cmd, { '--ext=ts', '--no-config' })
+    vim.list_extend(cmd, args)
+    table.insert(cmd, table.concat(body, '\n'))
+  else
+    cmd = { 'node' }
+    vim.list_extend(cmd, args)
+  end
 
   utils.run_shell_commands({ { cmd, { stdin = body } } }, function(jobs)
     local job = jobs[1]
