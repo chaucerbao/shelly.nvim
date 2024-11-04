@@ -167,7 +167,16 @@ local function render_scratch_buffer(lines, options)
     vim.bo[scratch_bufnr].filetype = options.filetype
   end
 
-  vim.api.nvim_buf_set_lines(scratch_bufnr, 0, -1, false, lines)
+  vim.api.nvim_buf_set_lines(
+    scratch_bufnr,
+    0,
+    -1,
+    false,
+    vim.tbl_map(function(line)
+      -- Remove ANSI escape codes
+      return line:gsub('[\27\155][][()#;?%d]*[A-PRZcf-ntqry=><~]', '')
+    end, lines)
+  )
   vim.fn.win_execute(scratch_winid, 'normal! gg0')
 
   return scratch_winid
