@@ -11,8 +11,9 @@ local filetypes = require('shelly.filetypes')
 local syntax_evaluator = {
   http = filetypes.http.evaluate,
   javascript = filetypes.javascript.evaluate,
-  sql = filetypes.sql.evaluate,
   redis = filetypes.redis.evaluate,
+  sql = filetypes.sql.evaluate,
+  typescript = filetypes.typescript.evaluate,
 }
 
 local function evaluate()

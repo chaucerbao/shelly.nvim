@@ -1,11 +1,12 @@
 local http = require('shelly.filetypes.http')
-local javascript = require('shelly.filetypes.javascript')
+local ecmascript = require('shelly.filetypes.ecmascript')
 local redis = require('shelly.filetypes.redis')
 local sql = require('shelly.filetypes.sql')
 
 return {
   http = http,
-  javascript = javascript,
+  javascript = ecmascript.createEvaluate('node'),
   redis = redis,
   sql = sql,
+  typescript = ecmascript.createEvaluate('deno'),
 }
