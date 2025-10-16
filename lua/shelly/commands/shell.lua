@@ -24,7 +24,7 @@ local function create(command)
         end)
       end)
     else
-      print('No shell command')
+      vim.notify('No shell command')
     end
   end, { nargs = '*', bang = true })
 end

@@ -59,7 +59,7 @@ end
 local function edit_selected_files()
   local files = get_selected_files()
   if #files == 0 then
-    print('No selection')
+    vim.notify('No selection')
   end
 
   vim.cmd.wincmd('p')

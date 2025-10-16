@@ -114,7 +114,7 @@ end
 local function parse_buffer()
   local selected_fence = get_current_fence()
   if not selected_fence then
-    print('No selection')
+    vim.notify('No selection')
     return
   end
 
