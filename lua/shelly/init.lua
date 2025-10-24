@@ -118,8 +118,18 @@ function M.execute()
     return
   end
 
-  -- Execute the runner
+  --- Execute the runner, handling silent mode
   runner.execute(function(result)
+    local silent = false
+    if evaluated.shelly_args.silent == true then
+      silent = true
+    elseif evaluated.shelly_args.nosilent == true then
+      silent = false
+    end
+    if silent then
+      vim.notify("Runner finished executing (silent mode).", vim.log.levels.INFO)
+      return
+    end
     display_results(result, use_vertical)
   end)
 end
