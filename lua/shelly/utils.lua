@@ -5,9 +5,9 @@ local M = {}
 ---@return string cleaned_line The line without comment prefixes
 local function remove_comment_prefix(line)
   -- Remove common line comment prefixes: //, #, --, ;
-  local cleaned = line:gsub("^%s*//", ""):gsub("^%s*#", ""):gsub("^%s*%-%-", ""):gsub("^%s*;", "")
+  local cleaned = line:gsub('^%s*//', ''):gsub('^%s*#', ''):gsub('^%s*%-%-', ''):gsub('^%s*;', '')
   -- Remove block comment markers: /* */ /** */
-  cleaned = cleaned:gsub("^%s*/%*+%s*", ""):gsub("%s*%*+/%s*$", "")
+  cleaned = cleaned:gsub('^%s*/%*+%s*', ''):gsub('%s*%*+/%s*$', '')
   return cleaned
 end
 
@@ -24,11 +24,11 @@ local function get_markdown_code_block(lines, line_num)
   -- Search backwards for opening fence
   for i = line_num, 1, -1 do
     local line = lines[i]
-    if line:match("^```") then
-      local match = line:match("^```(%S*)")
+    if line:match('^```') then
+      local match = line:match('^```(%S*)')
       if match then
         start_line = i
-        lang = match ~= "" and match or nil
+        lang = match ~= '' and match or nil
         break
       end
     end
@@ -40,7 +40,7 @@ local function get_markdown_code_block(lines, line_num)
 
   -- Search forwards for closing fence
   for i = line_num + 1, #lines do
-    if lines[i]:match("^```%s*$") then
+    if lines[i]:match('^```%s*$') then
       return true, lang, start_line, i
     end
   end
@@ -56,13 +56,13 @@ function M.parse_selection()
   local filetype = vim.bo.filetype
 
   -- Priority 1: Visual selection
-  if mode == "v" or mode == "V" or mode == "\22" then -- \22 is <C-v>
-    local start_pos = vim.fn.getpos("v")
-    local end_pos = vim.fn.getpos(".")
+  if mode == 'v' or mode == 'V' or mode == '\22' then -- \22 is <C-v>
+    local start_pos = vim.fn.getpos('v')
+    local end_pos = vim.fn.getpos('.')
     local start_line = math.min(start_pos[2], end_pos[2])
     local end_line = math.max(start_pos[2], end_pos[2])
 
-    if mode == "\22" then -- Block-wise visual
+    if mode == '\22' then -- Block-wise visual
       local start_col = math.min(start_pos[3], end_pos[3])
       local end_col = math.max(start_pos[3], end_pos[3])
       for i = start_line, end_line do
@@ -71,18 +71,18 @@ function M.parse_selection()
       end
     else
       lines = vim.fn.getline(start_line, end_line)
-      if type(lines) == "string" then
-        lines = {lines}
+      if type(lines) == 'string' then
+        lines = { lines }
       end
     end
 
-    return {lines = lines, filetype = filetype}
+    return { lines = lines, filetype = filetype }
   end
 
   -- Priority 2: Markdown code block surrounding current line
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local cursor_line = vim.fn.line(".")
+  local cursor_line = vim.fn.line('.')
 
   local in_block, lang, start_line, end_line = get_markdown_code_block(all_lines, cursor_line)
   if in_block and start_line and end_line then
@@ -92,12 +92,12 @@ function M.parse_selection()
     if lang then
       filetype = lang
     end
-    return {lines = lines, filetype = filetype}
+    return { lines = lines, filetype = filetype }
   end
 
   -- Priority 3: Entire buffer
   lines = all_lines
-  return {lines = lines, filetype = filetype}
+  return { lines = lines, filetype = filetype }
 end
 
 --- Parse context from markdown code blocks with 'context' or 'ctx' identifier
@@ -105,7 +105,7 @@ end
 function M.parse_context()
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local cursor_line = vim.fn.line(".")
+  local cursor_line = vim.fn.line('.')
   local context_lines = {}
 
   local i = 1
@@ -113,14 +113,14 @@ function M.parse_context()
     local line = all_lines[i]
 
     -- Check for context code block
-    local lang = line:match("^```(%S+)")
-    if lang and (lang == "context" or lang == "ctx") then
+    local lang = line:match('^```(%S+)')
+    if lang and (lang == 'context' or lang == 'ctx') then
       -- Found a context block, extract its contents
       i = i + 1
-      while i <= #all_lines and not all_lines[i]:match("^```%s*$") do
+      while i <= #all_lines and not all_lines[i]:match('^```%s*$') do
         local content = remove_comment_prefix(all_lines[i])
         -- Skip empty lines in context
-        if not content:match("^%s*$") then
+        if not content:match('^%s*$') then
           table.insert(context_lines, content)
         end
         i = i + 1
@@ -139,8 +139,7 @@ function M.parse_context()
 end
 
 --- Evaluate lines to extract special syntax (@@args, substitutions, dictionaries, etc.)
----@param lines string[] Lines to evaluate
----@return {shelly_args: table, shelly_substitutions: table, dictionary: table, command_args: string[], urls: string[], processed_lines: string[]}
+---@return {shelly_args: table<string, boolean|string>, shelly_substitutions: table<string, string>, dictionary: table<string, string>, command_args: string[], urls: string[], processed_lines: string[]}
 function M.evaluate(lines)
   local shelly_args = {}
   local shelly_substitutions = {}
@@ -154,17 +153,17 @@ function M.evaluate(lines)
     local cleaned = remove_comment_prefix(line)
 
     -- Skip empty lines
-    if cleaned:match("^%s*$") then
+    if cleaned:match('^%s*$') then
       goto continue
     end
 
     -- Check for @@shelly_args
-    local arg_match = cleaned:match("^%s*@@(%S+)")
+    local arg_match = cleaned:match('^%s*@@(%S+)')
     if arg_match then
-      local key, value = arg_match:match("^([^=]+)=(.+)$")
+      local key, value = arg_match:match('^([^=]+)=(.+)$')
       if key and value then
-        shelly_args[key] = value:match("^%s*(.-)%s*$") -- trim
-      elseif arg_match:match("^no") then
+        shelly_args[key] = value:match('^%s*(.-)%s*$') -- trim
+      elseif arg_match:match('^no') then
         shelly_args[arg_match] = false
       else
         shelly_args[arg_match] = true
@@ -173,28 +172,28 @@ function M.evaluate(lines)
     end
 
     -- Check for substitutions (key = value)
-    local var_key, var_value = cleaned:match("^%s*(%S+)%s*=%s*(.+)%s*$")
-    if var_key and var_value and not cleaned:match("^%-%-") and not cleaned:match("^%-[^-]") then
+    local var_key, var_value = cleaned:match('^%s*(%S+)%s*=%s*(.+)%s*$')
+    if var_key and var_value and not cleaned:match('^%-%-') and not cleaned:match('^%-[^-]') then
       shelly_substitutions[var_key] = var_value
       goto continue
     end
 
     -- Check for dictionary entries (key: value)
-    local dict_key, dict_value = cleaned:match("^%s*(%S+)%s*:%s*(.+)%s*$")
+    local dict_key, dict_value = cleaned:match('^%s*(%S+)%s*:%s*(.+)%s*$')
     if dict_key and dict_value then
       dictionary[dict_key] = dict_value
       goto continue
     end
 
     -- Check for command line arguments
-    if cleaned:match("^%-%-[%w-]+$") or cleaned:match("^%-[%w]$") then
-      table.insert(command_args, cleaned:match("^%s*(.-)%s*$"))
+    if cleaned:match('^%-%-[%w-]+$') or cleaned:match('^%-[%w]$') then
+      table.insert(command_args, cleaned:match('^%s*(.-)%s*$'))
       goto continue
     end
 
     -- Check for URLs
-    if cleaned:match("^https?://") or cleaned:match("^ftp://") then
-      table.insert(urls, cleaned:match("^%s*(.-)%s*$"))
+    if cleaned:match('^https?://') or cleaned:match('^ftp://') then
+      table.insert(urls, cleaned:match('^%s*(.-)%s*$'))
       goto continue
     end
 
@@ -215,12 +214,12 @@ function M.evaluate(lines)
     dictionary = dictionary,
     command_args = command_args,
     urls = urls,
-    processed_lines = processed_lines
+    processed_lines = processed_lines,
   }
 end
 
 --- Prepare code for execution by combining context, selection, and evaluation
----@return {evaluated: table, code_lines: string[], has_code: boolean}|nil result Prepared data or nil if no code
+---@return {evaluated: {shelly_args: table<string, boolean|string>, shelly_substitutions: table<string, string>, dictionary: table<string, string>, command_args: string[], urls: string[], processed_lines: string[]}, code_lines: string[], has_code: boolean} result Prepared data
 function M.prepare_execution()
   local selection = M.parse_selection()
   local context = M.parse_context()
@@ -241,7 +240,7 @@ function M.prepare_execution()
   local code_lines = evaluated.processed_lines
   local has_code = false
   for _, line in ipairs(code_lines) do
-    if not line:match("^%s*$") then
+    if not line:match('^%s*$') then
       has_code = true
       break
     end
@@ -250,7 +249,7 @@ function M.prepare_execution()
   return {
     evaluated = evaluated,
     code_lines = code_lines,
-    has_code = has_code
+    has_code = has_code,
   }
 end
 
@@ -263,19 +262,19 @@ function M.execute_shell(command, callback)
 
   -- Use vim.system for Neovim 0.10+
   if vim.system then
-    vim.system(command, {text = true}, function(obj)
+    vim.system(command, { text = true }, function(obj)
       if obj.stdout then
-        for line in obj.stdout:gmatch("[^\r\n]+") do
+        for line in obj.stdout:gmatch('[^\r\n]+') do
           table.insert(stdout_lines, line)
         end
       end
       if obj.stderr then
-        for line in obj.stderr:gmatch("[^\r\n]+") do
+        for line in obj.stderr:gmatch('[^\r\n]+') do
           table.insert(stderr_lines, line)
         end
       end
       vim.schedule(function()
-        callback({stdout = stdout_lines, stderr = stderr_lines})
+        callback({ stdout = stdout_lines, stderr = stderr_lines })
       end)
     end)
   else
@@ -284,7 +283,7 @@ function M.execute_shell(command, callback)
       on_stdout = function(_, data)
         if data then
           for _, line in ipairs(data) do
-            if line ~= "" then
+            if line ~= '' then
               table.insert(stdout_lines, line)
             end
           end
@@ -293,7 +292,7 @@ function M.execute_shell(command, callback)
       on_stderr = function(_, data)
         if data then
           for _, line in ipairs(data) do
-            if line ~= "" then
+            if line ~= '' then
               table.insert(stderr_lines, line)
             end
           end
@@ -301,18 +300,18 @@ function M.execute_shell(command, callback)
       end,
       on_exit = function()
         vim.schedule(function()
-          callback({stdout = stdout_lines, stderr = stderr_lines})
+          callback({ stdout = stdout_lines, stderr = stderr_lines })
         end)
-      end
+      end,
     })
 
     if job_id == 0 then
       vim.schedule(function()
-        callback({stdout = {}, stderr = {"Invalid command"}})
+        callback({ stdout = {}, stderr = { 'Invalid command' } })
       end)
     elseif job_id == -1 then
       vim.schedule(function()
-        callback({stdout = {}, stderr = {"Command not executable"}})
+        callback({ stdout = {}, stderr = { 'Command not executable' } })
       end)
     end
   end

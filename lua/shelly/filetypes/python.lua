@@ -1,4 +1,4 @@
-local utils = require("shelly.utils")
+local utils = require('shelly.utils')
 
 local M = {}
 
@@ -9,7 +9,7 @@ function M.execute(callback)
 
   if not prepared.has_code then
     vim.schedule(function()
-      callback({stdout = {}, stderr = {"No code to execute"}})
+      callback({ stdout = {}, stderr = { 'No code to execute' } })
     end)
     return
   end
@@ -18,8 +18,8 @@ function M.execute(callback)
   local code_lines = prepared.code_lines
 
   -- Build Python command
-  local code = table.concat(code_lines, "\n")
-  local command = {"python3", "-c", code}
+  local code = table.concat(code_lines, '\n')
+  local command = { 'python3', '-c', code }
 
   -- Add command line arguments if provided
   if #evaluated.command_args > 0 then

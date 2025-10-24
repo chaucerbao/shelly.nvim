@@ -1,4 +1,4 @@
-local utils = require("shelly.utils")
+local utils = require('shelly.utils')
 
 local M = {}
 
@@ -9,7 +9,7 @@ function M.execute(callback)
 
   if not prepared.has_code then
     vim.schedule(function()
-      callback({stdout = {}, stderr = {"No SQL to execute"}})
+      callback({ stdout = {}, stderr = { 'No SQL to execute' } })
     end)
     return
   end
@@ -18,15 +18,15 @@ function M.execute(callback)
   local code_lines = prepared.code_lines
 
   -- Build psql command
-  local sql = table.concat(code_lines, "\n")
-  local command = {"psql"}
+  local sql = table.concat(code_lines, '\n')
+  local command = { 'psql' }
 
   -- Look for connection string
   local connection_string = nil
 
   -- Check URLs for postgresql:// or postgres://, prioritize latest match
   for _, url in ipairs(evaluated.urls) do
-    if url:match("^postgres[ql]*://") then
+    if url:match('^postgres[ql]*://') then
       connection_string = url
     end
   end
@@ -45,22 +45,22 @@ function M.execute(callback)
   else
     -- Extract connection parameters from dictionary
     if evaluated.dictionary.host then
-      table.insert(command, "-h")
+      table.insert(command, '-h')
       table.insert(command, evaluated.dictionary.host)
     end
 
     if evaluated.dictionary.port then
-      table.insert(command, "-p")
+      table.insert(command, '-p')
       table.insert(command, evaluated.dictionary.port)
     end
 
     if evaluated.dictionary.username or evaluated.dictionary.user then
-      table.insert(command, "-U")
+      table.insert(command, '-U')
       table.insert(command, evaluated.dictionary.username or evaluated.dictionary.user)
     end
 
     if evaluated.dictionary.database or evaluated.dictionary.dbname then
-      table.insert(command, "-d")
+      table.insert(command, '-d')
       table.insert(command, evaluated.dictionary.database or evaluated.dictionary.dbname)
     end
   end
@@ -73,7 +73,7 @@ function M.execute(callback)
   end
 
   -- Add the SQL command
-  table.insert(command, "-c")
+  table.insert(command, '-c')
   table.insert(command, sql)
 
   utils.execute_shell(command, callback)

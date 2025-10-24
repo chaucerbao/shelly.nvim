@@ -1,4 +1,4 @@
-local utils = require("shelly.utils")
+local utils = require('shelly.utils')
 
 local M = {}
 
@@ -9,7 +9,7 @@ function M.execute(callback)
 
   if not prepared.has_code then
     vim.schedule(function()
-      callback({stdout = {}, stderr = {"No code to execute"}})
+      callback({ stdout = {}, stderr = { 'No code to execute' } })
     end)
     return
   end
@@ -18,17 +18,17 @@ function M.execute(callback)
   local code_lines = prepared.code_lines
 
   -- Build TypeScript command (try tsx first, fallback to ts-node)
-  local code = table.concat(code_lines, "\n")
+  local code = table.concat(code_lines, '\n')
 
   -- Check if tsx is available
-  local tsx_check = vim.fn.executable("tsx")
+  local tsx_check = vim.fn.executable('tsx')
   local command
 
   if tsx_check == 1 then
-    command = {"tsx", "-e", code}
+    command = { 'tsx', '-e', code }
   else
     -- Fallback to ts-node
-    command = {"ts-node", "-e", code}
+    command = { 'ts-node', '-e', code }
   end
 
   -- Add command line arguments if provided

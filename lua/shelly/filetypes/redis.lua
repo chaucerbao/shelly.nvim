@@ -1,4 +1,4 @@
-local utils = require("shelly.utils")
+local utils = require('shelly.utils')
 
 local M = {}
 
@@ -9,7 +9,7 @@ function M.execute(callback)
 
   if not prepared.has_code then
     vim.schedule(function()
-      callback({stdout = {}, stderr = {"No Redis commands to execute"}})
+      callback({ stdout = {}, stderr = { 'No Redis commands to execute' } })
     end)
     return
   end
@@ -18,14 +18,14 @@ function M.execute(callback)
   local code_lines = prepared.code_lines
 
   -- Build redis-cli command
-  local command = {"redis-cli"}
+  local command = { 'redis-cli' }
 
   -- Look for connection string
   local connection_string = nil
 
   -- Check URLs for redis:// or rediss://, prioritize latest match
   for _, url in ipairs(evaluated.urls) do
-    if url:match("^redis[s]*://") then
+    if url:match('^redis[s]*://') then
       connection_string = url
     end
   end
@@ -39,27 +39,27 @@ function M.execute(callback)
 
   -- If connection string found, use it
   if connection_string then
-    table.insert(command, "-u")
+    table.insert(command, '-u')
     table.insert(command, connection_string)
   else
     -- Extract connection parameters from dictionary
     if evaluated.dictionary.host then
-      table.insert(command, "-h")
+      table.insert(command, '-h')
       table.insert(command, evaluated.dictionary.host)
     end
 
     if evaluated.dictionary.port then
-      table.insert(command, "-p")
+      table.insert(command, '-p')
       table.insert(command, evaluated.dictionary.port)
     end
 
     if evaluated.dictionary.auth or evaluated.dictionary.password then
-      table.insert(command, "-a")
+      table.insert(command, '-a')
       table.insert(command, evaluated.dictionary.auth or evaluated.dictionary.password)
     end
 
     if evaluated.dictionary.db then
-      table.insert(command, "-n")
+      table.insert(command, '-n')
       table.insert(command, evaluated.dictionary.db)
     end
   end
@@ -74,33 +74,36 @@ function M.execute(callback)
   -- For multiple commands, execute them one by one
   if #code_lines == 1 then
     -- Single command - add directly
-    local cmd_parts = vim.split(code_lines[1], "%s+")
+    local cmd_parts = vim.split(code_lines[1], '%s+')
     for _, part in ipairs(cmd_parts) do
       table.insert(command, part)
     end
     utils.execute_shell(command, callback)
   else
     -- Multiple commands - execute in batch mode
-    local commands_str = table.concat(code_lines, "\n")
+    local commands_str = table.concat(code_lines, '\n')
 
     -- Create a temporary command that pipes commands to redis-cli
-    local pipe_command = {"bash", "-c", "echo '" .. commands_str:gsub("'", "'\\''") .. "' | redis-cli"}
+    local pipe_command = { 'bash', '-c', "echo '" .. commands_str:gsub("'", "'\\''") .. "' | redis-cli" }
 
     -- Add connection params to the pipe command
     if connection_string then
       pipe_command[3] = pipe_command[3] .. " -u '" .. connection_string:gsub("'", "'\\''") .. "'"
     else
       if evaluated.dictionary.host then
-        pipe_command[3] = pipe_command[3] .. " -h " .. evaluated.dictionary.host
+        pipe_command[3] = pipe_command[3] .. ' -h ' .. evaluated.dictionary.host
       end
       if evaluated.dictionary.port then
-        pipe_command[3] = pipe_command[3] .. " -p " .. evaluated.dictionary.port
+        pipe_command[3] = pipe_command[3] .. ' -p ' .. evaluated.dictionary.port
       end
       if evaluated.dictionary.auth or evaluated.dictionary.password then
-        pipe_command[3] = pipe_command[3] .. " -a '" .. (evaluated.dictionary.auth or evaluated.dictionary.password):gsub("'", "'\\''") .. "'"
+        pipe_command[3] = pipe_command[3]
+          .. " -a '"
+          .. (evaluated.dictionary.auth or evaluated.dictionary.password):gsub("'", "'\\''")
+          .. "'"
       end
       if evaluated.dictionary.db then
-        pipe_command[3] = pipe_command[3] .. " -n " .. evaluated.dictionary.db
+        pipe_command[3] = pipe_command[3] .. ' -n ' .. evaluated.dictionary.db
       end
     end
 

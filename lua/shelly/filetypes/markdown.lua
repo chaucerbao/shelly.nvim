@@ -1,4 +1,4 @@
-local utils = require("shelly.utils")
+local utils = require('shelly.utils')
 
 local M = {}
 
@@ -12,26 +12,26 @@ function M.execute(callback)
 
   -- Map common language identifiers to runner names
   local filetype_map = {
-    python = "python",
-    py = "python",
-    lua = "lua",
-    javascript = "javascript",
-    js = "javascript",
-    typescript = "typescript",
-    ts = "typescript",
-    sql = "postgresql",
-    postgresql = "postgresql",
-    psql = "postgresql",
-    redis = "redis",
-    bash = "sh",
-    sh = "sh",
-    shell = "sh"
+    python = 'python',
+    py = 'python',
+    lua = 'lua',
+    javascript = 'javascript',
+    js = 'javascript',
+    typescript = 'typescript',
+    ts = 'typescript',
+    sql = 'postgresql',
+    postgresql = 'postgresql',
+    psql = 'postgresql',
+    redis = 'redis',
+    bash = 'sh',
+    sh = 'sh',
+    shell = 'sh',
   }
 
   local runner_name = filetype_map[filetype] or filetype
 
   -- Try to load the appropriate runner
-  local success, runner = pcall(require, "shelly.filetypes." .. runner_name)
+  local success, runner = pcall(require, 'shelly.filetypes.' .. runner_name)
 
   if success and runner.execute then
     -- Delegate to the specific filetype runner
@@ -40,7 +40,7 @@ function M.execute(callback)
     vim.schedule(function()
       callback({
         stdout = {},
-        stderr = {"No runner found for filetype: " .. filetype}
+        stderr = { 'No runner found for filetype: ' .. filetype },
       })
     end)
   end
