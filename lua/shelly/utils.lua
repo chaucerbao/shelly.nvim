@@ -1,8 +1,5 @@
 local M = {}
 
---- Remove common code comment prefixes from a line
----@param line string The line to clean
----@return string cleaned_line The line without comment prefixes
 local function remove_comment_prefix(line)
   -- Remove common line comment prefixes: //, #, --, ;
   local cleaned = line:gsub('^%s*//', ''):gsub('^%s*#', ''):gsub('^%s*%-%-', ''):gsub('^%s*;', '')
@@ -315,6 +312,23 @@ function M.execute_shell(command, callback)
       end)
     end
   end
+end
+
+function M.append_args(command, args)
+  if args and #args > 0 then
+    for i = 1, #args do
+      command[#command + 1] = args[i]
+    end
+  end
+end
+
+function M.build_command(base_cmd, args)
+  local cmd = {}
+  for i = 1, #base_cmd do
+    cmd[i] = base_cmd[i]
+  end
+  M.append_args(cmd, args)
+  return cmd
 end
 
 return M
