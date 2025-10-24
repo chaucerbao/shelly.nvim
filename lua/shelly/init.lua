@@ -5,6 +5,12 @@ local M = {}
 --- Display results in a scratch buffer
 ---@param result {stdout: string[], stderr: string[]} Execution results
 ---@param use_vertical boolean Whether to use vertical split
+--- Display results in a scratch buffer window.
+---
+--- Combines stdout and stderr, creates or reuses a scratch buffer, and displays output.
+---
+--- @param result table Table with 'stdout' and 'stderr' string arrays
+--- @param use_vertical boolean Whether to use vertical split for display
 local function display_results(result, use_vertical)
   -- Combine stdout and stderr
   local output = {}
@@ -74,9 +80,11 @@ local function display_results(result, use_vertical)
   end
 end
 
---- Main entry point to execute code
---- Execute the main entry point for Shelly
----@return nil
+--- Execute the main entry point for Shelly.
+---
+--- Parses selection, determines filetype, loads appropriate runner, and executes code.
+--- Displays results or error messages.
+--- @return nil
 function M.execute()
   -- Parse selection to get filetype
   local selection = utils.parse_selection()

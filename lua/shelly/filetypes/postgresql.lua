@@ -2,6 +2,10 @@ local utils = require('shelly.utils')
 
 local M = {}
 
+--- Execute PostgreSQL queries using psql.
+---
+--- Builds connection string and runs SQL code.
+--- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute(callback)
   local prepared = utils.prepare_execution()
   if not prepared.has_code then

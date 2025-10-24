@@ -2,6 +2,10 @@ local utils = require('shelly.utils')
 
 local M = {}
 
+--- Execute Redis commands using redis-cli.
+---
+--- Builds connection string and runs Redis commands.
+--- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute(callback)
   local prepared = utils.prepare_execution()
   if not prepared.has_code then

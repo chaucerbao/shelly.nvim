@@ -2,6 +2,10 @@ local utils = require('shelly.utils')
 
 local M = {}
 
+--- Execute TypeScript code using tsx or ts-node.
+---
+--- Concatenates code lines and runs with tsx -e or ts-node -e.
+--- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute(callback)
   local prepared = utils.prepare_execution()
   if not prepared.has_code then

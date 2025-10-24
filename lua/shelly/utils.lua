@@ -1,5 +1,10 @@
 local M = {}
 
+--- Remove common code comment prefixes from a line.
+---
+--- Supports //, #, --, ;, /*, */ and /** */.
+--- @param line string Line to clean
+--- @return string Cleaned line
 local function remove_comment_prefix(line)
   -- Remove common line comment prefixes: //, #, --, ;
   local cleaned = line:gsub('^%s*//', ''):gsub('^%s*#', ''):gsub('^%s*%-%-', ''):gsub('^%s*;', '')
@@ -8,13 +13,15 @@ local function remove_comment_prefix(line)
   return cleaned
 end
 
---- Check if a line is within a markdown code block
----@param lines table List of all buffer lines
----@param line_num number Current line number (1-indexed)
----@return boolean is_in_block Whether the line is in a code block
----@return string|nil language The language identifier if in a block
----@return number|nil start_line The starting line of the code block
----@return number|nil end_line The ending line of the code block
+--- Check if a line is within a markdown code block.
+---
+--- Searches for code block fences and language identifier.
+--- @param lines string[] List of all buffer lines
+--- @param line_num integer Current line number (1-indexed)
+--- @return boolean is_in_block True if in code block
+--- @return string|nil language Language identifier if present
+--- @return integer|nil start_line Starting line of code block
+--- @return integer|nil end_line Ending line of code block
 local function get_markdown_code_block(lines, line_num)
   local start_line, lang = nil, nil
 
@@ -45,8 +52,10 @@ local function get_markdown_code_block(lines, line_num)
   return false, nil, nil, nil
 end
 
---- Parse the current selection and determine lines and filetype
----@return {lines: string[], filetype: string}
+--- Parse the current selection and determine lines and filetype.
+---
+--- Priority: visual selection > markdown code block > entire buffer.
+--- @return table Table with 'lines' (string[]) and 'filetype' (string)
 function M.parse_selection()
   local mode = vim.fn.mode()
   local lines = {}
@@ -97,8 +106,10 @@ function M.parse_selection()
   return { lines = lines, filetype = filetype }
 end
 
---- Parse context from markdown code blocks with 'context' or 'ctx' identifier
----@return string[] context_lines Lines from context blocks
+--- Parse context from markdown code blocks with 'context' or 'ctx' identifier.
+---
+--- Returns lines from context blocks up to current code block.
+--- @return string[] Lines from context blocks
 function M.parse_context()
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -135,8 +146,11 @@ function M.parse_context()
   return context_lines
 end
 
---- Evaluate lines to extract special syntax (@@args, substitutions, dictionaries, etc.)
----@return {shelly_args: table<string, boolean|string>, shelly_substitutions: table<string, string>, dictionary: table<string, string>, command_args: string[], urls: string[], processed_lines: string[]}
+--- Evaluate lines to extract Shelly syntax: args, substitutions, dictionaries, command args, URLs.
+---
+--- Removes comment prefixes, parses special lines, applies substitutions.
+--- @param lines string[] Lines to evaluate
+--- @return table Table with shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines
 function M.evaluate(lines)
   local shelly_args = {}
   local shelly_substitutions = {}
@@ -215,8 +229,9 @@ function M.evaluate(lines)
   }
 end
 
---- Prepare code for execution by combining context, selection, and evaluation
----@return {evaluated: {shelly_args: table<string, boolean|string>, shelly_substitutions: table<string, string>, dictionary: table<string, string>, command_args: string[], urls: string[], processed_lines: string[]}, code_lines: string[], has_code: boolean} result Prepared data
+--- Prepare code for execution by combining context, selection, and evaluation.
+---
+--- @return table Table with evaluated (see M.evaluate), code_lines (string[]), has_code (boolean)
 function M.prepare_execution()
   local selection = M.parse_selection()
   local context = M.parse_context()
@@ -250,9 +265,11 @@ function M.prepare_execution()
   }
 end
 
---- Execute a shell command asynchronously
----@param command string[] Command as list of arguments
----@param callback function(result: {stdout: string[], stderr: string[]}) Callback with results
+--- Execute a shell command asynchronously.
+---
+--- Uses vim.system (Neovim 0.10+) or jobstart (older versions).
+--- @param command string[] Command as list of arguments
+--- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute_shell(command, callback)
   local stdout_lines = {}
   local stderr_lines = {}
@@ -314,6 +331,10 @@ function M.execute_shell(command, callback)
   end
 end
 
+--- Append command-line arguments to a command table.
+---
+--- @param command string[] Command table to append to
+--- @param args string[] Arguments to append
 function M.append_args(command, args)
   if args and #args > 0 then
     for i = 1, #args do
@@ -322,6 +343,11 @@ function M.append_args(command, args)
   end
 end
 
+--- Build a command table from base command and arguments.
+---
+--- @param base_cmd string[] Base command table
+--- @param args string[] Arguments to append
+--- @return string[] Combined command table
 function M.build_command(base_cmd, args)
   local cmd = {}
   for i = 1, #base_cmd do
