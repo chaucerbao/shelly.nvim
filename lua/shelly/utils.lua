@@ -82,7 +82,12 @@ function M.parse_selection()
       end
     end
 
-    return { lines = lines, filetype = filetype }
+    return {
+      lines = lines,
+      filetype = filetype,
+      line_start = start_line,
+      line_end = end_line,
+    }
   end
 
   -- Priority 2: Markdown code block surrounding current line
@@ -98,12 +103,21 @@ function M.parse_selection()
     if lang then
       filetype = lang
     end
-    return { lines = lines, filetype = filetype }
+    return {
+      lines = lines,
+      filetype = filetype,
+      line_start = start_line + 1,
+      line_end = end_line - 1,
+    }
   end
 
   -- Priority 3: Entire buffer
-  lines = all_lines
-  return { lines = lines, filetype = filetype }
+  return {
+    lines = all_lines,
+    filetype = filetype,
+    line_start = 1,
+    line_end = #all_lines,
+  }
 end
 
 --- Parse context from markdown code blocks with 'context' or 'ctx' identifier.
