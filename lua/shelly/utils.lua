@@ -120,14 +120,12 @@ function M.parse_selection()
   }
 end
 
---- Parse context from markdown code blocks with 'context' or 'ctx' identifier.
----
---- Returns a table with 'lines' (string[]) from context blocks up to current code block.
---- @return table Table with 'lines' (string[])
-function M.parse_context()
+function M.parse_context(opts)
+  opts = opts or {}
+
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local cursor_line = vim.fn.line('.')
+  local until_line = tonumber(opts.until_line)
   local context_lines = {}
 
   local i = 1
@@ -148,8 +146,8 @@ function M.parse_context()
         i = i + 1
       end
 
-      -- Stop if we've reached the current code block
-      if i >= cursor_line then
+      -- Stop if we've reached until_line
+      if i >= until_line then
         break
       end
     end
