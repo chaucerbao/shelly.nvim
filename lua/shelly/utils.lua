@@ -52,6 +52,36 @@ local function get_markdown_code_block(lines, line_num)
   return false, nil, nil, nil
 end
 
+--- Get the current visual selection as lines, with start and end line numbers.
+--- @return table { lines: string[], line_start: integer, line_end: integer }
+local function get_visual_selection()
+  local register_backup = {
+    content = vim.fn.getreg('"'),
+    type = vim.fn.getregtype('"'),
+  }
+
+  local start_pos = vim.fn.getpos('v')
+  local end_pos = vim.fn.getpos('.')
+  local line_start = math.min(start_pos[2], end_pos[2])
+  local line_end = math.max(start_pos[2], end_pos[2])
+
+  vim.cmd('normal! y')
+  local selection_text = vim.fn.getreg('"')
+
+  vim.fn.setreg('"', register_backup.content, register_backup.type)
+  vim.cmd('normal! gv')
+
+  local lines = vim.split(selection_text, '\n')
+  if #lines == 0 or (lines[1] == '' and #lines == 1) then
+    vim.notify('No visual selection found', vim.log.levels.WARN)
+  end
+  return {
+    lines = lines,
+    line_start = line_start,
+    line_end = line_end,
+  }
+end
+
 --- Parse the current selection and determine lines and filetype.
 ---
 --- Priority: visual selection > markdown code block > entire buffer.
@@ -63,27 +93,9 @@ function M.parse_selection()
 
   -- Priority 1: Visual selection
   if mode == 'v' or mode == 'V' or mode == '\22' then -- \22 is <C-v>
-    local start_pos = vim.fn.getpos('v')
-    local end_pos = vim.fn.getpos('.')
-    local start_line = math.min(start_pos[2], end_pos[2])
-    local end_line = math.max(start_pos[2], end_pos[2])
-
-    if mode == '\22' then -- Block-wise visual
-      local start_col = math.min(start_pos[3], end_pos[3])
-      local end_col = math.max(start_pos[3], end_pos[3])
-      for i = start_line, end_line do
-        local line = vim.fn.getline(i)
-        table.insert(selected_lines, remove_comment_prefix(line:sub(start_col, end_col)))
-      end
-    else
-      local visual_lines = vim.fn.getline(start_line, end_line)
-      if type(visual_lines) == 'string' then
-        visual_lines = { visual_lines }
-      end
-      for _, line in ipairs(visual_lines) do
-        table.insert(selected_lines, remove_comment_prefix(line))
-      end
-    end
+    local selection = get_visual_selection()
+    local start_line = selection.line_start
+    local end_line = selection.line_end
 
     -- Check for markdown code block language identifier
     local bufnr = vim.api.nvim_get_current_buf()
@@ -94,7 +106,7 @@ function M.parse_selection()
     end
 
     return {
-      lines = selected_lines,
+      lines = selection.lines,
       filetype = filetype,
       line_start = start_line,
       line_end = end_line,
