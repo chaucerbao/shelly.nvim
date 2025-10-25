@@ -108,8 +108,8 @@ end
 
 --- Parse context from markdown code blocks with 'context' or 'ctx' identifier.
 ---
---- Returns lines from context blocks up to current code block.
---- @return string[] Lines from context blocks
+--- Returns a table with 'lines' (string[]) from context blocks up to current code block.
+--- @return table Table with 'lines' (string[])
 function M.parse_context()
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -143,7 +143,7 @@ function M.parse_context()
     i = i + 1
   end
 
-  return context_lines
+  return { lines = context_lines }
 end
 
 --- Evaluate lines to extract Shelly syntax: args, substitutions, dictionaries, command args, URLs.

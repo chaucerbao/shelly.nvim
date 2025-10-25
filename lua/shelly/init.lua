@@ -79,12 +79,21 @@ end
 --- Displays results or error messages.
 --- @return nil
 function M.execute()
-  -- Parse selection to get filetype
+  local context = utils.parse_context()
   local selection = utils.parse_selection()
   local filetype = selection.filetype
 
-  -- Also evaluate the selection to check for shelly_args
-  local evaluated = utils.evaluate(selection.lines)
+  -- Concatenate context and selection lines
+  local all_lines = {}
+  for _, line in ipairs(context.lines) do
+    table.insert(all_lines, line)
+  end
+  for _, line in ipairs(selection.lines) do
+    table.insert(all_lines, line)
+  end
+
+  -- Evaluate the combined lines
+  local evaluated = utils.evaluate(all_lines)
   local use_vertical = false
 
   -- Check for vertical split preference
