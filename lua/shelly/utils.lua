@@ -146,41 +146,39 @@ function M.parse_selection()
   }
 end
 
+
+--- Parse context code blocks from buffer lines.
+---
+--- Extracts lines from markdown code blocks with language 'context' or 'ctx'.
+--- Skips empty lines and removes comment prefixes.
+--- @param opts table? Optional table with until_line (integer)
+--- @return table { lines: string[] }
 function M.parse_context(opts)
   opts = opts or {}
-
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local until_line = opts.until_line and tonumber(opts.until_line) or #all_lines
+  local until_line = opts.until_line or #all_lines
   local context_lines = {}
+  local in_block = false
 
-  local i = 1
-  while i <= #all_lines do
+  for i = 1, math.min(#all_lines, until_line) do
     local line = all_lines[i]
-
-    -- Check for context code block
-    local lang = line:match('^```(%S+)')
-    if lang and (lang == 'context' or lang == 'ctx') then
-      -- Found a context block, extract its contents
-      i = i + 1
-      while i <= #all_lines and not all_lines[i]:match('^```%s*$') do
-        local content = remove_comment_prefix(all_lines[i])
-        -- Skip empty lines in context
-        if not content:match('^%s*$') then
+    if not in_block then
+      local lang = line:match('^```(%S+)')
+      if lang and (lang == 'context' or lang == 'ctx') then
+        in_block = true
+      end
+    else
+      if line:match('^```%s*$') then
+        in_block = false
+      else
+        local content = remove_comment_prefix(line)
+        if content:match('%S') then
           table.insert(context_lines, content)
         end
-        i = i + 1
-      end
-
-      -- Stop if we've reached until_line
-      if i >= until_line then
-        break
       end
     end
-
-    i = i + 1
   end
-
   return { lines = context_lines }
 end
 
