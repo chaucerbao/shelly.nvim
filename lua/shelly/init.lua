@@ -2,16 +2,17 @@ local utils = require('shelly.utils')
 
 local M = {}
 
---- Display results in a scratch buffer
+--- Table to cache scratch buffers per filetype
+---@type table<string, integer>
+local scratch_buffers = {}
+
+--- Display results in a scratch buffer per filetype
 ---@param result {stdout: string[], stderr: string[]} Execution results
 ---@param use_vertical boolean Whether to use vertical split
---- Display results in a scratch buffer window.
----
+---@param filetype string Filetype for runner-specific buffer
+--- Display results in a reusable scratch buffer window per filetype.
 --- Combines stdout and stderr, creates or reuses a scratch buffer, and displays output.
----
---- @param result table Table with 'stdout' and 'stderr' string arrays
---- @param use_vertical boolean Whether to use vertical split for display
-local function display_results(result, use_vertical)
+local function display_results(result, use_vertical, filetype)
   -- Combine stdout and stderr
   local output = {}
 
@@ -36,21 +37,14 @@ local function display_results(result, use_vertical)
     table.insert(output, '(no output)')
   end
 
-  -- Create or reuse scratch buffer
-  local scratch_bufnr = nil
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.bo[bufnr].filetype == 'shelly-output' then
-      scratch_bufnr = bufnr
-      break
-    end
-  end
-
+  -- Create or reuse scratch buffer for this filetype
+  local bufname = 'shelly-output-' .. filetype
+  local scratch_bufnr = scratch_buffers[filetype]
   if not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     scratch_bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(scratch_bufnr, bufname)
     vim.bo[scratch_bufnr].filetype = 'shelly-output'
-    vim.bo[scratch_bufnr].buftype = 'nofile'
-    vim.bo[scratch_bufnr].bufhidden = 'hide'
-    vim.bo[scratch_bufnr].swapfile = false
+    scratch_buffers[filetype] = scratch_bufnr
   end
 
   -- Set buffer content
@@ -136,7 +130,7 @@ function M.execute()
       vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
       return
     end
-    display_results(result, use_vertical)
+    display_results(result, use_vertical, filetype)
   end)
 end
 
