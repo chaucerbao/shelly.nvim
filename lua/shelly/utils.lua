@@ -58,7 +58,7 @@ end
 --- @return table Table with 'lines' (string[]) and 'filetype' (string)
 function M.parse_selection()
   local mode = vim.fn.mode()
-  local lines = {}
+  local selected_lines = {}
   local filetype = vim.bo.filetype
 
   -- Priority 1: Visual selection
@@ -73,17 +73,20 @@ function M.parse_selection()
       local end_col = math.max(start_pos[3], end_pos[3])
       for i = start_line, end_line do
         local line = vim.fn.getline(i)
-        table.insert(lines, line:sub(start_col, end_col))
+        table.insert(selected_lines, remove_comment_prefix(line:sub(start_col, end_col)))
       end
     else
-      lines = vim.fn.getline(start_line, end_line)
-      if type(lines) == 'string' then
-        lines = { lines }
+      local visual_lines = vim.fn.getline(start_line, end_line)
+      if type(visual_lines) == 'string' then
+        visual_lines = { visual_lines }
+      end
+      for _, line in ipairs(visual_lines) do
+        table.insert(selected_lines, remove_comment_prefix(line))
       end
     end
 
     return {
-      lines = lines,
+      lines = selected_lines,
       filetype = filetype,
       line_start = start_line,
       line_end = end_line,
@@ -95,25 +98,28 @@ function M.parse_selection()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local cursor_line = vim.fn.line('.')
 
-  local in_block, lang, start_line, end_line = get_markdown_code_block(all_lines, cursor_line)
-  if in_block and start_line and end_line then
-    for i = start_line + 1, end_line - 1 do
-      table.insert(lines, all_lines[i])
+  local in_block, lang, block_start_line, block_end_line = get_markdown_code_block(all_lines, cursor_line)
+  if in_block and block_start_line and block_end_line then
+    for i = block_start_line + 1, block_end_line - 1 do
+      table.insert(selected_lines, remove_comment_prefix(all_lines[i]))
     end
     if lang then
       filetype = lang
     end
     return {
-      lines = lines,
+      lines = selected_lines,
       filetype = filetype,
-      line_start = start_line + 1,
-      line_end = end_line - 1,
+      line_start = block_start_line + 1,
+      line_end = block_end_line - 1,
     }
   end
 
   -- Priority 3: Entire buffer
+  for _, line in ipairs(all_lines) do
+    table.insert(selected_lines, remove_comment_prefix(line))
+  end
   return {
-    lines = all_lines,
+    lines = selected_lines,
     filetype = filetype,
     line_start = 1,
     line_end = #all_lines,
