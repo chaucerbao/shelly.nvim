@@ -55,7 +55,6 @@ local function display_results(result, use_vertical)
 
   -- Set buffer content
   vim.api.nvim_buf_set_lines(scratch_bufnr, 0, -1, false, output)
-  vim.bo[scratch_bufnr].modifiable = false
 
   -- Find window showing the scratch buffer
   local scratch_winnr = nil
