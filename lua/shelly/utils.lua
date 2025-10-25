@@ -1,5 +1,9 @@
 local M = {}
 
+-- Markdown code block patterns
+local CODE_BLOCK_START_PATTERN = '^%s*```%s*([%w%-_]+)%s*$'
+local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
+
 --- Remove common code comment prefixes from a line.
 ---
 --- Supports //, #, --, ;, /*, */ and /** */.
@@ -28,13 +32,11 @@ local function get_markdown_code_block(lines, line_num)
   -- Search backwards for opening fence
   for i = line_num, 1, -1 do
     local line = lines[i]
-    if line:match('^```') then
-      local match = line:match('^```(%S*)')
-      if match then
-        start_line = i
-        lang = match ~= '' and match or nil
-        break
-      end
+    local match = line:match(CODE_BLOCK_START_PATTERN)
+    if match then
+      start_line = i
+      lang = match
+      break
     end
   end
 
@@ -44,7 +46,7 @@ local function get_markdown_code_block(lines, line_num)
 
   -- Search forwards for closing fence
   for i = line_num + 1, #lines do
-    if lines[i]:match('^```%s*$') then
+    if lines[i]:match(CODE_BLOCK_END_PATTERN) then
       return true, lang, start_line, i
     end
   end
@@ -146,7 +148,6 @@ function M.parse_selection()
   }
 end
 
-
 --- Parse context code blocks from buffer lines.
 ---
 --- Extracts lines from markdown code blocks with language 'context' or 'ctx'.
@@ -164,12 +165,12 @@ function M.parse_context(opts)
   for i = 1, math.min(#all_lines, until_line) do
     local line = all_lines[i]
     if not in_block then
-      local lang = line:match('^```(%S+)')
+      local lang = line:match(CODE_BLOCK_START_PATTERN)
       if lang and (lang == 'context' or lang == 'ctx') then
         in_block = true
       end
     else
-      if line:match('^```%s*$') then
+      if line:match(CODE_BLOCK_END_PATTERN) then
         in_block = false
       else
         local content = remove_comment_prefix(line)
