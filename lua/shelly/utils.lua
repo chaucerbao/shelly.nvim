@@ -85,6 +85,14 @@ function M.parse_selection()
       end
     end
 
+    -- Check for markdown code block language identifier
+    local bufnr = vim.api.nvim_get_current_buf()
+    local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local in_block, lang = get_markdown_code_block(all_lines, start_line)
+    if in_block and lang then
+      filetype = lang
+    end
+
     return {
       lines = selected_lines,
       filetype = filetype,
@@ -131,7 +139,7 @@ function M.parse_context(opts)
 
   local bufnr = vim.api.nvim_get_current_buf()
   local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local until_line = tonumber(opts.until_line)
+  local until_line = opts.until_line and tonumber(opts.until_line) or #all_lines
   local context_lines = {}
 
   local i = 1
