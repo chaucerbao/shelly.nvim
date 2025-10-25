@@ -128,7 +128,7 @@ function M.execute()
   end
 
   --- Execute the runner, handling silent mode
-  runner.execute(function(result)
+  runner.execute(evaluated, function(result)
     local silent = false
     if evaluated.shelly_args.silent == true then
       silent = true

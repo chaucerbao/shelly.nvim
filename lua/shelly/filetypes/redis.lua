@@ -5,17 +5,15 @@ local M = {}
 --- Execute Redis commands using redis-cli.
 ---
 --- Builds connection string and runs Redis commands.
+--- @param evaluated table Evaluated code and metadata
 --- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
-function M.execute(callback)
-  local prepared = utils.prepare_execution()
-  if not prepared.has_code then
+function M.execute(evaluated, callback)
+  if not evaluated or not evaluated.processed_lines or #evaluated.processed_lines == 0 then
     vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No Redis commands to execute' } })
     end)
     return
   end
-  local evaluated = prepared.evaluated
-  local code_lines = prepared.code_lines
   local command = { 'redis-cli' }
   local connection_string = nil
   for _, url in ipairs(evaluated.urls) do
@@ -50,14 +48,14 @@ function M.execute(callback)
     end
   end
   utils.append_args(command, evaluated.command_args)
-  if #code_lines == 1 then
-    local cmd_parts = vim.split(code_lines[1], '%s+')
+  if #evaluated.processed_lines == 1 then
+    local cmd_parts = vim.split(evaluated.processed_lines[1], '%s+')
     for _, part in ipairs(cmd_parts) do
       table.insert(command, part)
     end
     utils.execute_shell(command, callback)
   else
-    local commands_str = table.concat(code_lines, '\n')
+    local commands_str = table.concat(evaluated.processed_lines, '\n')
     local pipe_command = { 'bash', '-c', "echo '" .. commands_str:gsub("'", "'\\''") .. "' | redis-cli" }
     if connection_string then
       pipe_command[3] = pipe_command[3] .. " -u '" .. connection_string:gsub("'", "'\\''") .. "'"

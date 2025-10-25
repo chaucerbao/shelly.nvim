@@ -5,18 +5,16 @@ local M = {}
 --- Execute PostgreSQL queries using psql.
 ---
 --- Builds connection string and runs SQL code.
+--- @param evaluated table Evaluated code and metadata
 --- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
-function M.execute(callback)
-  local prepared = utils.prepare_execution()
-  if not prepared.has_code then
+function M.execute(evaluated, callback)
+  if not evaluated or not evaluated.processed_lines or #evaluated.processed_lines == 0 then
     vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No SQL to execute' } })
     end)
     return
   end
-  local evaluated = prepared.evaluated
-  local code_lines = prepared.code_lines
-  local sql = table.concat(code_lines, '\n')
+  local sql = table.concat(evaluated.processed_lines, '\n')
   local command = { 'psql' }
   local connection_string = nil
   for _, url in ipairs(evaluated.urls) do

@@ -29,16 +29,19 @@ local function parse_method_url(lines)
   return 'GET', '', 0
 end
 
-function M.execute(callback)
-  local prepared = utils.prepare_execution()
-  if not prepared.has_code then
+--- Execute HTTP requests using curl.
+---
+--- Parses method, URL, and body from evaluated code and runs with curl.
+--- @param evaluated table Evaluated code and metadata
+--- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
+function M.execute(evaluated, callback)
+  if not evaluated or not evaluated.processed_lines or #evaluated.processed_lines == 0 then
     vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
     end)
     return
   end
-  local evaluated = prepared.evaluated
-  local code_lines = prepared.code_lines
+  local code_lines = evaluated.processed_lines
   local method, url, idx = parse_method_url(code_lines)
   local body_lines = {}
   for line_index = idx + 1, #code_lines do
