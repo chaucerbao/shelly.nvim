@@ -1,7 +1,5 @@
 local utils = require('shelly.utils')
 
-local M = {}
-
 --- Checks if a string is valid JSON (object or array).
 -- @param str string
 -- @return boolean
@@ -30,16 +28,11 @@ local function parse_method_url(lines)
 end
 
 --- Execute HTTP requests using curl.
----
---- Parses method, URL, and body from evaluated code and runs with curl.
---- @param evaluated table Evaluated code and metadata
---- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
-function M.execute(evaluated, callback)
-  if not evaluated or not evaluated.processed_lines or #evaluated.processed_lines == 0 then
-    vim.schedule(function()
+local function execute(evaluated, callback)
+  if #evaluated.processed_lines == 0 then
+    return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
     end)
-    return
   end
   local code_lines = evaluated.processed_lines
   local method, url, idx = parse_method_url(code_lines)
@@ -97,4 +90,4 @@ function M.execute(evaluated, callback)
   utils.execute_shell(command, callback)
 end
 
-return M
+return { execute = execute }
