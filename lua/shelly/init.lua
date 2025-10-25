@@ -99,7 +99,7 @@ function M.execute()
     python = 'python',
     lua = 'lua',
     javascript = 'javascript',
-    typescript = 'typescript',
+    typescript = 'javascript',
     sh = 'sh',
     bash = 'sh',
     sql = 'postgresql',
