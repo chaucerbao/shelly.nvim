@@ -40,7 +40,7 @@ local function execute(evaluated, callback)
       table.insert(command, evaluated.dictionary.db)
     end
   end
-  utils.append_args(command, evaluated.command_args)
+  vim.list_extend(command, evaluated.command_args)
   if #evaluated.processed_lines == 1 then
     for _, part in ipairs(vim.split(evaluated.processed_lines[1], '%s+')) do
       table.insert(command, part)

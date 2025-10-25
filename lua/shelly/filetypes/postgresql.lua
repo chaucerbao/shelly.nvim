@@ -41,7 +41,7 @@ local function execute(evaluated, callback)
       table.insert(command, evaluated.dictionary.database or evaluated.dictionary.dbname)
     end
   end
-  utils.append_args(command, evaluated.command_args)
+  vim.list_extend(command, evaluated.command_args)
   table.insert(command, '-c')
   table.insert(command, sql)
   utils.execute_shell(command, callback)

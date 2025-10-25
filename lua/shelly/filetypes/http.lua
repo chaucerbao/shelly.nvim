@@ -43,7 +43,7 @@ local function execute(evaluated, callback)
     end
   end
   local command = { 'curl', '-L', '-i', '-X', method }
-  utils.append_args(command, evaluated.command_args)
+  vim.list_extend(command, evaluated.command_args)
   if method == 'GQL' then
     table.insert(command, url)
     table.insert(command, '-H')

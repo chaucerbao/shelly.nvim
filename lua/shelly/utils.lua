@@ -188,7 +188,14 @@ end
 ---
 --- Removes comment prefixes, parses special lines, applies substitutions.
 --- @param lines string[] Lines to evaluate
---- @return table Table with shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines
+--- @return {
+---   shelly_args: table<string, boolean|string>,
+---   shelly_substitutions: table<string, string>,
+---   dictionary: table<string, string>,
+---   command_args: string[],
+---   urls: string[],
+---   processed_lines: string[]
+--- }
 function M.evaluate(lines)
   local shelly_args = {}
   local shelly_substitutions = {}
@@ -331,32 +338,6 @@ function M.execute_shell(command, callback)
       end)
     end
   end
-end
-
---- Append command-line arguments to a command table.
----
---- @param command string[] Command table to append to
---- @param args string[] Arguments to append
-function M.append_args(command, args)
-  if args and #args > 0 then
-    for i = 1, #args do
-      command[#command + 1] = args[i]
-    end
-  end
-end
-
---- Build a command table from base command and arguments.
----
---- @param base_cmd string[] Base command table
---- @param args string[] Arguments to append
---- @return string[] Combined command table
-function M.build_command(base_cmd, args)
-  local cmd = {}
-  for i = 1, #base_cmd do
-    cmd[i] = base_cmd[i]
-  end
-  M.append_args(cmd, args)
-  return cmd
 end
 
 return M
