@@ -27,31 +27,32 @@ end
 --- @return integer|nil start_line Starting line of code block
 --- @return integer|nil end_line Ending line of code block
 local function get_markdown_code_block(lines, line_num)
-  local start_line, lang = nil, nil
-
-  -- Search backwards for opening fence
+  local start_line, language
   for i = line_num, 1, -1 do
     local line = lines[i]
     local match = line:match(CODE_BLOCK_START_PATTERN)
     if match then
       start_line = i
-      lang = match
+      language = match
       break
     end
-  end
-
-  if not start_line then
-    return false, nil, nil, nil
-  end
-
-  -- Search forwards for closing fence
-  for i = line_num + 1, #lines do
-    if lines[i]:match(CODE_BLOCK_END_PATTERN) then
-      return true, lang, start_line, i
+    if line:match(CODE_BLOCK_END_PATTERN) then
+      return false
     end
   end
-
-  return false, nil, nil, nil
+  if not start_line then
+    return false
+  end
+  for i = line_num + 1, #lines do
+    local line = lines[i]
+    if line:match(CODE_BLOCK_START_PATTERN) then
+      return false
+    end
+    if line:match(CODE_BLOCK_END_PATTERN) then
+      return true, language, start_line, i
+    end
+  end
+  return false
 end
 
 --- Get the current visual selection as lines, with start and end line numbers.
