@@ -29,27 +29,24 @@ end
 local function get_markdown_code_block(lines, line_num)
   local start_line, language
   for i = line_num, 1, -1 do
-    local line = lines[i]
-    local match = line:match(CODE_BLOCK_START_PATTERN)
+    local match = lines[i]:match(CODE_BLOCK_START_PATTERN)
     if match then
-      start_line = i
-      language = match
+      start_line, language = i, match
       break
     end
-    if line:match(CODE_BLOCK_END_PATTERN) then
+    if i ~= line_num and lines[i]:match(CODE_BLOCK_END_PATTERN) then
       return false
     end
   end
   if not start_line then
     return false
   end
-  for i = line_num + 1, #lines do
-    local line = lines[i]
-    if line:match(CODE_BLOCK_START_PATTERN) then
+  for i = start_line + 1, #lines do
+    if lines[i]:match(CODE_BLOCK_START_PATTERN) then
       return false
     end
-    if line:match(CODE_BLOCK_END_PATTERN) then
-      return true, language, start_line, i
+    if lines[i]:match(CODE_BLOCK_END_PATTERN) then
+      return line_num >= start_line and line_num <= i and true, language, start_line, i or false
     end
   end
   return false
