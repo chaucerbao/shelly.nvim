@@ -270,64 +270,25 @@ end
 --- @param command string[] Command as list of arguments
 --- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute_shell(command, callback)
-  local stdout_lines = {}
-  local stderr_lines = {}
-
-  -- Use vim.system for Neovim 0.10+
-  if vim.system then
-    vim.system(command, { text = true }, function(obj)
-      if obj.stdout then
-        for line in obj.stdout:gmatch('[^\r\n]+') do
-          table.insert(stdout_lines, line)
-        end
-      end
-      if obj.stderr then
-        for line in obj.stderr:gmatch('[^\r\n]+') do
-          table.insert(stderr_lines, line)
-        end
-      end
-      vim.schedule(function()
-        callback({ stdout = stdout_lines, stderr = stderr_lines })
-      end)
-    end)
-  else
-    -- Fallback to jobstart for older Neovim versions
-    local job_id = vim.fn.jobstart(command, {
-      on_stdout = function(_, data)
-        if data then
-          for _, line in ipairs(data) do
-            if line ~= '' then
-              table.insert(stdout_lines, line)
-            end
-          end
-        end
-      end,
-      on_stderr = function(_, data)
-        if data then
-          for _, line in ipairs(data) do
-            if line ~= '' then
-              table.insert(stderr_lines, line)
-            end
-          end
-        end
-      end,
-      on_exit = function()
-        vim.schedule(function()
-          callback({ stdout = stdout_lines, stderr = stderr_lines })
-        end)
-      end,
-    })
-
-    if job_id == 0 then
-      vim.schedule(function()
-        callback({ stdout = {}, stderr = { 'Invalid command' } })
-      end)
-    elseif job_id == -1 then
-      vim.schedule(function()
-        callback({ stdout = {}, stderr = { 'Command not executable' } })
-      end)
+  local function split_into_lines(text)
+    if not text then
+      return {}
     end
+    local lines = {}
+    for line in (text .. '\n'):gmatch('(.-)\n') do
+      lines[#lines + 1] = line
+    end
+    return lines
   end
+
+  vim.system(command, { text = true }, function(result)
+    vim.schedule(function()
+      callback({
+        stdout = split_into_lines(result.stdout),
+        stderr = split_into_lines(result.stderr),
+      })
+    end)
+  end)
 end
 
 return M
