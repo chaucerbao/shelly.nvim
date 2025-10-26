@@ -140,7 +140,23 @@ function M.execute()
       vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
       return
     end
+
+    local original_win = vim.api.nvim_get_current_win()
     display_results(result, use_vertical, filetype)
+
+    local focus = false
+    if evaluated.shelly_args.focus == true then
+      focus = true
+    elseif evaluated.shelly_args.nofocus == true then
+      focus = false
+    end
+    if not focus then
+      -- Move cursor back to original window
+      if vim.api.nvim_win_is_valid(original_win) then
+        vim.api.nvim_set_current_win(original_win)
+      end
+      return
+    end
   end)
 end
 
