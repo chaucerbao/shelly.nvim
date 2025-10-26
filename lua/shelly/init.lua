@@ -79,8 +79,8 @@ end
 --- Displays results or error messages.
 --- @return nil
 function M.execute()
-  local selection = utils.parse_selection()
-  local context = utils.parse_context({ until_line = selection.line_start })
+  local selection = utils.get_selection()
+  local context = utils.get_context({ until_line = selection.line_start })
   local filetype = selection.filetype
 
   -- Concatenate context and selection lines

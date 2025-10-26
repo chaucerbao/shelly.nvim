@@ -3,7 +3,7 @@ local utils = require('shelly.utils')
 --- Executes a Markdown code block by delegating to the appropriate runner.
 --- @type FiletypeRunner
 local function execute(evaluated, callback)
-  local selection = utils.parse_selection()
+  local selection = utils.get_selection()
   local filetype = selection.filetype
   local filetype_map = {
     python = 'python',

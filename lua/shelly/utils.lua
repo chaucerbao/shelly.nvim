@@ -86,7 +86,7 @@ end
 ---
 --- Priority: visual selection > markdown code block > entire buffer.
 --- @return table Table with 'lines' (string[]) and 'filetype' (string)
-function M.parse_selection()
+function M.get_selection()
   local mode = vim.fn.mode()
   local selected_lines = {}
   local filetype = vim.bo.filetype
@@ -100,9 +100,9 @@ function M.parse_selection()
     -- Check for markdown code block language identifier
     local bufnr = vim.api.nvim_get_current_buf()
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local in_block, lang = get_markdown_code_block(lines, line_start)
-    if in_block and lang then
-      filetype = lang
+    local in_block, language = get_markdown_code_block(lines, line_start)
+    if in_block and language then
+      filetype = language
     end
 
     return {
@@ -118,13 +118,13 @@ function M.parse_selection()
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local cursor_line = vim.fn.line('.')
 
-  local in_block, lang, line_start, line_end = get_markdown_code_block(lines, cursor_line)
+  local in_block, language, line_start, line_end = get_markdown_code_block(lines, cursor_line)
   if in_block and line_start and line_end then
     for i = line_start + 1, line_end - 1 do
       table.insert(selected_lines, remove_comment_prefix(lines[i]))
     end
-    if lang then
-      filetype = lang
+    if language then
+      filetype = language
     end
     return {
       lines = selected_lines,
@@ -152,7 +152,7 @@ end
 --- Skips empty lines and removes comment prefixes.
 --- @param opts table? Optional table with until_line (integer)
 --- @return table { lines: string[] }
-function M.parse_context(opts)
+function M.get_context(opts)
   opts = opts or {}
   local bufnr = vim.api.nvim_get_current_buf()
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -163,8 +163,8 @@ function M.parse_context(opts)
   for i = 1, math.min(#lines, until_line) do
     local line = lines[i]
     if not in_block then
-      local lang = line:match(CODE_BLOCK_START_PATTERN)
-      if lang and (lang == 'context' or lang == 'ctx') then
+      local language = line:match(CODE_BLOCK_START_PATTERN)
+      if language and (language == 'context' or language == 'ctx') then
         in_block = true
       end
     else
