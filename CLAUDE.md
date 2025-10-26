@@ -8,13 +8,13 @@ This is a Neovim plugin written in Lua. It runs selected text through a shell co
 
 ### Files
 
-- The main entry point for this plugin is an exported function called `execute()`, inside `./lua/shelly/init.lua`, that determines which filetype runner to use, executes it, and displays the results in a scratch buffer.
-- Utility functions for shared logic are in `./lua/shelly/utils.lua`.
-- Filetype runners for supported filetypes are located in `./lua/shelly/filetypes/<filetype>.lua`. They each export an `execute()` function that parses and passes selected code to a shell command.
+- `./lua/shelly/init.lua` is the main entry point for this plugin. It exports an `execute()` function that extracts selected code with its filetype along with any additional context, then runs it against the appropriate filetype runner, and displays the results in a scratch buffer.
+- `./lua/shelly/utils.lua` contains shared utility functions used across this codebase.
+- `./lua/shelly/types.lua` contains shared LuaCATS annotations used across this codebase.
+- `./lua/shelly/filetypes/<filetype>.lua` are Filetype Runners that each export an `execute()` function, which is responsible for (optionally) parsing additional custom command arguments, constructing the full shell command, and executing it.
 
 ## Implementation
 
-- Optimize the code for performance
-- Make the code concise, but use descriptive variable and function names
-- Document the code using LuaCATS annotations
-- Show error messages using `vim.notify()`
+- Optimize the code for runtime performance.
+- Make the code concise, but use descriptive function and variable names.
+- Make sure all functions are documented and have accurate LuaCATS annotations for arguments and returns.
