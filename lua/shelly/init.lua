@@ -84,16 +84,16 @@ function M.execute()
   local filetype = selection.filetype
 
   -- Concatenate context and selection lines
-  local all_lines = {}
+  local lines = {}
   for _, line in ipairs(context.lines) do
-    table.insert(all_lines, line)
+    table.insert(lines, line)
   end
   for _, line in ipairs(selection.lines) do
-    table.insert(all_lines, line)
+    table.insert(lines, line)
   end
 
   -- Evaluate the combined lines
-  local evaluated = utils.evaluate(all_lines)
+  local evaluated = utils.evaluate(lines)
   local use_vertical = false
 
   -- Check for vertical split preference

@@ -24,29 +24,29 @@ end
 --- @param line_num integer Current line number (1-indexed)
 --- @return boolean is_in_block True if in code block
 --- @return string|nil language Language identifier if present
---- @return integer|nil start_line Starting line of code block
---- @return integer|nil end_line Ending line of code block
+--- @return integer|nil line_start Starting line of code block
+--- @return integer|nil line_end Ending line of code block
 local function get_markdown_code_block(lines, line_num)
-  local start_line, language
+  local line_start, language
   for i = line_num, 1, -1 do
     local match = lines[i]:match(CODE_BLOCK_START_PATTERN)
     if match then
-      start_line, language = i, match
+      line_start, language = i, match
       break
     end
     if i ~= line_num and lines[i]:match(CODE_BLOCK_END_PATTERN) then
       return false
     end
   end
-  if not start_line then
+  if not line_start then
     return false
   end
-  for i = start_line + 1, #lines do
+  for i = line_start + 1, #lines do
     if lines[i]:match(CODE_BLOCK_START_PATTERN) then
       return false
     end
     if lines[i]:match(CODE_BLOCK_END_PATTERN) then
-      return line_num >= start_line and line_num <= i and true, language, start_line, i or false
+      return line_num >= line_start and line_num <= i and true, language, line_start, i or false
     end
   end
   return false
@@ -94,13 +94,13 @@ function M.parse_selection()
   -- Priority 1: Visual selection
   if mode == 'v' or mode == 'V' or mode == '\22' then -- \22 is <C-v>
     local selection = get_visual_selection()
-    local start_line = selection.line_start
-    local end_line = selection.line_end
+    local line_start = selection.line_start
+    local line_end = selection.line_end
 
     -- Check for markdown code block language identifier
     local bufnr = vim.api.nvim_get_current_buf()
-    local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local in_block, lang = get_markdown_code_block(all_lines, start_line)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local in_block, lang = get_markdown_code_block(lines, line_start)
     if in_block and lang then
       filetype = lang
     end
@@ -108,20 +108,20 @@ function M.parse_selection()
     return {
       lines = selection.lines,
       filetype = filetype,
-      line_start = start_line,
-      line_end = end_line,
+      line_start = line_start,
+      line_end = line_end,
     }
   end
 
   -- Priority 2: Markdown code block surrounding current line
   local bufnr = vim.api.nvim_get_current_buf()
-  local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local cursor_line = vim.fn.line('.')
 
-  local in_block, lang, block_start_line, block_end_line = get_markdown_code_block(all_lines, cursor_line)
-  if in_block and block_start_line and block_end_line then
-    for i = block_start_line + 1, block_end_line - 1 do
-      table.insert(selected_lines, remove_comment_prefix(all_lines[i]))
+  local in_block, lang, line_start, line_end = get_markdown_code_block(lines, cursor_line)
+  if in_block and line_start and line_end then
+    for i = line_start + 1, line_end - 1 do
+      table.insert(selected_lines, remove_comment_prefix(lines[i]))
     end
     if lang then
       filetype = lang
@@ -129,20 +129,20 @@ function M.parse_selection()
     return {
       lines = selected_lines,
       filetype = filetype,
-      line_start = block_start_line + 1,
-      line_end = block_end_line - 1,
+      line_start = line_start + 1,
+      line_end = line_end - 1,
     }
   end
 
   -- Priority 3: Entire buffer
-  for _, line in ipairs(all_lines) do
+  for _, line in ipairs(lines) do
     table.insert(selected_lines, remove_comment_prefix(line))
   end
   return {
     lines = selected_lines,
     filetype = filetype,
     line_start = 1,
-    line_end = #all_lines,
+    line_end = #lines,
   }
 end
 
@@ -155,13 +155,13 @@ end
 function M.parse_context(opts)
   opts = opts or {}
   local bufnr = vim.api.nvim_get_current_buf()
-  local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local until_line = opts.until_line or #all_lines
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local until_line = opts.until_line or #lines
   local context_lines = {}
   local in_block = false
 
-  for i = 1, math.min(#all_lines, until_line) do
-    local line = all_lines[i]
+  for i = 1, math.min(#lines, until_line) do
+    local line = lines[i]
     if not in_block then
       local lang = line:match(CODE_BLOCK_START_PATTERN)
       if lang and (lang == 'context' or lang == 'ctx') then
