@@ -27,7 +27,8 @@ local function parse_method_url(lines)
   return 'GET', '', 0
 end
 
---- Execute HTTP requests using curl.
+--- Executes HTTP requests using curl.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()

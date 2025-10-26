@@ -1,6 +1,7 @@
 local utils = require('shelly.utils')
 
---- Execute Redis commands using redis-cli.
+--- Executes Redis commands using redis-cli.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()

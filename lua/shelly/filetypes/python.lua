@@ -1,5 +1,7 @@
 local utils = require('shelly.utils')
---- Execute Python code using python3.
+
+--- Executes Python code using python3.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()

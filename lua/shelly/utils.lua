@@ -188,14 +188,7 @@ end
 ---
 --- Removes comment prefixes, parses special lines, applies substitutions.
 --- @param lines string[] Lines to evaluate
---- @return {
----   shelly_args: table<string, boolean|string>,
----   shelly_substitutions: table<string, string>,
----   dictionary: table<string, string>,
----   command_args: string[],
----   urls: string[],
----   processed_lines: string[]
---- }
+--- @return Evaluated
 function M.evaluate(lines)
   local shelly_args = {}
   local shelly_substitutions = {}

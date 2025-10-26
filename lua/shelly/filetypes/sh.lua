@@ -1,6 +1,7 @@
 local utils = require('shelly.utils')
 
---- Execute shell commands using bash.
+--- Executes shell commands using bash.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()

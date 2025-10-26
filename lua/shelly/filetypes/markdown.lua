@@ -1,12 +1,8 @@
 local utils = require('shelly.utils')
 
-local M = {}
-
---- Execute Markdown code block by delegating to the appropriate runner.
----
---- Determines code block language and runs corresponding filetype runner.
---- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
-function M.execute(callback)
+--- Executes a Markdown code block by delegating to the appropriate runner.
+--- @type FiletypeRunner
+local function execute(evaluated, callback)
   local selection = utils.parse_selection()
   local filetype = selection.filetype
   local filetype_map = {
@@ -40,4 +36,4 @@ function M.execute(callback)
   end
 end
 
-return M
+return { execute = execute }

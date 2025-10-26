@@ -1,6 +1,7 @@
 local utils = require('shelly.utils')
 
---- Execute PostgreSQL queries using psql.
+--- Executes PostgreSQL queries using psql.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()

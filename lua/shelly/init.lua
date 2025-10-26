@@ -120,9 +120,10 @@ function M.execute()
   local runner_name = filetype_map[filetype] or filetype
 
   -- Try to load the appropriate runner
+  ---@type boolean, { execute: FiletypeRunner } | string
   local success, runner = pcall(require, 'shelly.filetypes.' .. runner_name)
 
-  if not success or not runner.execute then
+  if not (success and type(runner) == 'table' and type(runner.execute) == 'function') then
     vim.notify('No runner found for filetype: ' .. filetype, vim.log.levels.ERROR)
     return
   end

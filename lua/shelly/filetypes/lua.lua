@@ -1,6 +1,7 @@
 local utils = require('shelly.utils')
 
---- Execute Lua code using the Lua interpreter.
+--- Executes Lua code using the Lua interpreter.
+--- @type FiletypeRunner
 local function execute(evaluated, callback)
   if #evaluated.processed_lines == 0 then
     return vim.schedule(function()
