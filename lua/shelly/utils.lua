@@ -139,7 +139,7 @@ function M.get_selection()
   local in_block, language, line_start, line_end = get_markdown_code_block(lines, cursor_line)
   if in_block and line_start and line_end then
     for i = line_start + 1, line_end - 1 do
-      table.insert(selected_lines, remove_from_comment(lines[i]))
+      table.insert(selected_lines, lines[i])
     end
     if language then
       filetype = language
@@ -154,7 +154,7 @@ function M.get_selection()
 
   -- Priority 3: Entire buffer
   for _, line in ipairs(lines) do
-    table.insert(selected_lines, remove_from_comment(line))
+    table.insert(selected_lines, line)
   end
   return {
     lines = selected_lines,
@@ -189,9 +189,8 @@ function M.get_context(opts)
       if line:match(CODE_BLOCK_END_PATTERN) then
         in_block = false
       else
-        local content = remove_from_comment(line)
-        if content:match('%S') then
-          table.insert(context_lines, content)
+        if line:match('%S') then
+          table.insert(context_lines, line)
         end
       end
     end
@@ -213,16 +212,13 @@ function M.evaluate(lines)
   local processed_lines = {}
 
   for _, line in ipairs(lines) do
-    -- Remove comment prefixes
-    local cleaned = remove_from_comment(line)
-
     -- Skip empty lines
-    if cleaned:match('^%s*$') then
+    if line:match('^%s*$') then
       goto continue
     end
 
     -- Check for @@shelly_args
-    local arg_match = cleaned:match('^%s*@@(%S+)')
+    local arg_match = line:match('^%s*@@(%S+)')
     if arg_match then
       local key, value = arg_match:match('^([^=]+)=(.+)$')
       if key and value then
@@ -236,33 +232,33 @@ function M.evaluate(lines)
     end
 
     -- Check for substitutions (key = value)
-    local var_key, var_value = cleaned:match('^%s*(%S+)%s*=%s*(.+)%s*$')
-    if var_key and var_value and not cleaned:match('^%-%-') and not cleaned:match('^%-[^-]') then
+    local var_key, var_value = line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
+    if var_key and var_value and not line:match('^%-%-') and not line:match('^%-[^-]') then
       shelly_substitutions[var_key] = var_value
       goto continue
     end
 
     -- Check for dictionary entries (key: value)
-    local dict_key, dict_value = cleaned:match('^%s*(%S+)%s*:%s*(.+)%s*$')
+    local dict_key, dict_value = line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
     if dict_key and dict_value then
       dictionary[dict_key] = dict_value
       goto continue
     end
 
     -- Check for command line arguments
-    if is_command_line_argument(cleaned) then
-      table.insert(command_args, cleaned:match('^%s*(.-)%s*$'))
+    if is_command_line_argument(line) then
+      table.insert(command_args, line:match('^%s*(.-)%s*$'))
       goto continue
     end
 
     -- Check for URLs
-    if cleaned:match('^https?://') or cleaned:match('^ftp://') then
-      table.insert(urls, cleaned:match('^%s*(.-)%s*$'))
+    if line:match('^https?://') or line:match('^ftp://') then
+      table.insert(urls, line:match('^%s*(.-)%s*$'))
       goto continue
     end
 
     -- Apply substitutions
-    local processed = cleaned
+    local processed = line
     for var_key, var_value in pairs(shelly_substitutions) do
       processed = processed:gsub(var_key, var_value)
     end
