@@ -78,7 +78,7 @@ end
 --- Parses selection, determines filetype, loads appropriate runner, and executes code.
 --- Displays results or error messages.
 --- @return nil
-function M.execute()
+function M.execute_selection()
   local selection = utils.get_selection()
   local until_line = selection.line_start
   if selection.selection_type == 'buffer' then
@@ -182,7 +182,8 @@ function M.execute_shell(command, opts)
     return
   end
 
-  runner.execute(utils.evaluate({ command }), function(result)
+  local evaluated = utils.evaluate({ command })
+  runner.execute(evaluated, function(result)
     display_results(result, use_vertical, 'shell')
   end)
 end
