@@ -179,7 +179,7 @@ function M.get_context(opts)
   local in_block = false
 
   for i = 1, math.min(#lines, until_line) do
-    local line = lines[i]
+    local line = remove_from_comment(lines[i])
     if not in_block then
       local language = line:match(CODE_BLOCK_START_PATTERN)
       if language and (language == 'context' or language == 'ctx') then
