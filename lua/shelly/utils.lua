@@ -4,17 +4,15 @@ local M = {}
 local CODE_BLOCK_START_PATTERN = '^%s*```%s*([%w%-_]+)%s*$'
 local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
 
---- Remove common code comment prefixes from a line.
+--- Removes code comment prefixes and suffixes from a line.
 ---
---- Supports //, #, --, ;, /*, */ and /** */.
 --- @param line string Line to clean
 --- @return string Cleaned line
-local function remove_comment_prefix(line)
-  -- Remove common line comment prefixes: //, #, --, ;
-  local cleaned = line:gsub('^%s*//', ''):gsub('^%s*#', ''):gsub('^%s*%-%-', ''):gsub('^%s*;', '')
-  -- Remove block comment markers: /* */ /** */
-  cleaned = cleaned:gsub('^%s*/%*+%s*', ''):gsub('%s*%*+/%s*$', '')
-  return cleaned
+local function remove_from_comment(line)
+  line = line:match('^%s*(.-)%s*$') or line
+  line = line:gsub('^(#|//|--|/%*|<!--)%s+', '')
+  line = line:gsub('%s*(%*/|-->)$', '')
+  return line
 end
 
 --- Check if a line is within a markdown code block.
@@ -121,7 +119,7 @@ function M.get_selection()
   local in_block, language, line_start, line_end = get_markdown_code_block(lines, cursor_line)
   if in_block and line_start and line_end then
     for i = line_start + 1, line_end - 1 do
-      table.insert(selected_lines, remove_comment_prefix(lines[i]))
+      table.insert(selected_lines, remove_from_comment(lines[i]))
     end
     if language then
       filetype = language
@@ -136,7 +134,7 @@ function M.get_selection()
 
   -- Priority 3: Entire buffer
   for _, line in ipairs(lines) do
-    table.insert(selected_lines, remove_comment_prefix(line))
+    table.insert(selected_lines, remove_from_comment(line))
   end
   return {
     lines = selected_lines,
@@ -171,7 +169,7 @@ function M.get_context(opts)
       if line:match(CODE_BLOCK_END_PATTERN) then
         in_block = false
       else
-        local content = remove_comment_prefix(line)
+        local content = remove_from_comment(line)
         if content:match('%S') then
           table.insert(context_lines, content)
         end
@@ -196,7 +194,7 @@ function M.evaluate(lines)
 
   for _, line in ipairs(lines) do
     -- Remove comment prefixes
-    local cleaned = remove_comment_prefix(line)
+    local cleaned = remove_from_comment(line)
 
     -- Skip empty lines
     if cleaned:match('^%s*$') then
@@ -232,7 +230,7 @@ function M.evaluate(lines)
     end
 
     -- Check for command line arguments
-    if cleaned:match('^%-%-[%w-]+$') or cleaned:match('^%-[%w]$') then
+    if cleaned:match('^%-%w$') or cleaned:match('^%-%-[%w%-]+$') or cleaned:match('^%-%-[%w%-]+=[^%s]+$') then
       table.insert(command_args, cleaned:match('^%s*(.-)%s*$'))
       goto continue
     end
