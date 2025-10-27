@@ -8,10 +8,30 @@ local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
 ---
 --- @param line string Line to clean
 --- @return string Cleaned line
+
+--- Check if a line is a command line argument.
+--- @param line string
+--- @return boolean
+local function is_command_line_argument(line)
+  return line:match('^%-%w$') or line:match('^%-%-[%w%-]+$') or line:match('^%-%-[%w%-]+=[^%s]+$')
+end
+
 local function remove_from_comment(line)
+  -- Trim leading/trailing whitespace
   line = line:match('^%s*(.-)%s*$') or line
-  line = line:gsub('^(#|//|--|/%*|<!--)%s+', '')
-  line = line:gsub('%s*(%*/|-->)$', '')
+  -- If line looks like a command argument, do not strip comment prefix
+  if is_command_line_argument(line) then
+    return line
+  end
+  -- Remove common comment prefixes
+  line = line:gsub('^#%s*', '')
+  line = line:gsub('^//%s*', '')
+  line = line:gsub('^--%s*', '')
+  line = line:gsub('^/%*%s*', '')
+  line = line:gsub('^<!--%s*', '')
+  -- Remove common comment suffixes
+  line = line:gsub('%s*%*/$', '')
+  line = line:gsub('%s*-->$', '')
   return line
 end
 
@@ -230,7 +250,7 @@ function M.evaluate(lines)
     end
 
     -- Check for command line arguments
-    if cleaned:match('^%-%w$') or cleaned:match('^%-%-[%w%-]+$') or cleaned:match('^%-%-[%w%-]+=[^%s]+$') then
+    if is_command_line_argument(cleaned) then
       table.insert(command_args, cleaned:match('^%s*(.-)%s*$'))
       goto continue
     end
