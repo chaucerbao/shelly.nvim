@@ -234,6 +234,12 @@ function M.evaluate(lines)
       goto continue
     end
 
+    -- Check for URLs (any scheme://)
+    if line:match('^%s*[%w%+%-%.]+://') then
+      table.insert(urls, line:match('^%s*(.-)%s*$'))
+      goto continue
+    end
+
     -- Check for substitutions (key = value)
     local var_key, var_value = line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
     if var_key and var_value and not line:match('^%-%-') and not line:match('^%-[^-]') then
@@ -251,12 +257,6 @@ function M.evaluate(lines)
     -- Check for command line arguments
     if is_command_line_argument(line) then
       table.insert(command_args, line:match('^%s*(.-)%s*$'))
-      goto continue
-    end
-
-    -- Check for URLs
-    if line:match('^https?://') or line:match('^ftp://') then
-      table.insert(urls, line:match('^%s*(.-)%s*$'))
       goto continue
     end
 
