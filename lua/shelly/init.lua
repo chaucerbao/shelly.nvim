@@ -8,7 +8,7 @@ local scratch_buffers = {}
 
 ---@param result FiletypeRunnerResult Execution results
 ---@param filetype string Filetype for runner-specific buffer
----@param opts table|nil Optional table: { vertical = boolean }
+---@param opts table|nil Optional table: { vertical = boolean, size = number }
 local function display_results(result, filetype, opts)
   -- Combine stdout and stderr
   local output = {}
@@ -58,11 +58,22 @@ local function display_results(result, filetype, opts)
 
   -- Open in split if not already visible
   local vertical = opts and opts.vertical or false
+  local size = opts and type(opts.size) == 'number' and opts.size or nil
   if not scratch_winnr then
     if vertical then
       vim.cmd('vsplit')
+      if size then
+        local total_cols = vim.o.columns
+        local win_width = math.floor(total_cols * size / 100)
+        vim.api.nvim_win_set_width(0, win_width)
+      end
     else
       vim.cmd('split')
+      if size then
+        local total_lines = vim.o.lines
+        local win_height = math.floor(total_lines * size / 100)
+        vim.api.nvim_win_set_height(0, win_height)
+      end
     end
     vim.api.nvim_win_set_buf(0, scratch_bufnr)
   else
