@@ -17,7 +17,6 @@ local function display_results(result, use_vertical, filetype)
   local output = {}
 
   if #result.stdout > 0 then
-    table.insert(output, '=== Output ===')
     for _, line in ipairs(result.stdout) do
       table.insert(output, line)
     end
@@ -27,7 +26,6 @@ local function display_results(result, use_vertical, filetype)
     if #output > 0 then
       table.insert(output, '')
     end
-    table.insert(output, '=== Errors ===')
     for _, line in ipairs(result.stderr) do
       table.insert(output, line)
     end
@@ -38,11 +36,10 @@ local function display_results(result, use_vertical, filetype)
   end
 
   -- Create or reuse scratch buffer for this filetype
-  local bufname = 'shelly-output-' .. filetype
   local scratch_bufnr = scratch_buffers[filetype]
   if not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     scratch_bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(scratch_bufnr, bufname)
+    vim.api.nvim_buf_set_name(scratch_bufnr, 'shelly://' .. filetype .. '-results')
     scratch_buffers[filetype] = scratch_bufnr
   end
   -- Set buffer filetype only if result.filetype is not nil
