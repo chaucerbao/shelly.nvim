@@ -103,7 +103,7 @@ end
 --- Parse the current selection and determine lines and filetype.
 ---
 --- Priority: visual selection > markdown code block > entire buffer.
---- @return table Table with 'lines' (string[]) and 'filetype' (string)
+--- @return table { lines: string[], filetype: string, line_start: integer, line_end: integer, selection_type: 'visual'|'code-block'|'buffer' }
 function M.get_selection()
   local mode = vim.fn.mode()
   local selected_lines = {}
@@ -128,6 +128,7 @@ function M.get_selection()
       filetype = filetype,
       line_start = line_start,
       line_end = line_end,
+      selection_type = 'visual',
     }
   end
 
@@ -149,6 +150,7 @@ function M.get_selection()
       filetype = filetype,
       line_start = line_start + 1,
       line_end = line_end - 1,
+      selection_type = 'code-block',
     }
   end
 
@@ -161,6 +163,7 @@ function M.get_selection()
     filetype = filetype,
     line_start = 1,
     line_end = #lines,
+    selection_type = 'buffer',
   }
 end
 

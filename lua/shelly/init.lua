@@ -80,7 +80,11 @@ end
 --- @return nil
 function M.execute()
   local selection = utils.get_selection()
-  local context = utils.get_context({ until_line = selection.line_start })
+  local until_line = selection.line_start
+  if selection.selection_type == 'buffer' then
+    until_line = selection.line_end
+  end
+  local context = utils.get_context({ until_line = until_line })
   local filetype = selection.filetype
 
   -- Concatenate context and selection lines
