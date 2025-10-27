@@ -164,4 +164,27 @@ function M.execute()
   end)
 end
 
+--- Execute an arbitrary shell command and display results in a scratch buffer
+--- @param command string Shell command to execute
+--- @param opts table|nil Optional table: { vertical = boolean }
+function M.execute_shell(command, opts)
+  opts = opts or {}
+  local use_vertical = opts.vertical or false
+
+  if type(command) ~= 'string' or command == '' then
+    vim.notify('No shell command provided.', vim.log.levels.ERROR)
+    return
+  end
+
+  local success, runner = pcall(require, 'shelly.filetypes.sh')
+  if not (success and type(runner) == 'table' and type(runner.execute) == 'function') then
+    vim.notify('No shell runner found.', vim.log.levels.ERROR)
+    return
+  end
+
+  runner.execute(utils.evaluate({ command }), function(result)
+    display_results(result, use_vertical, 'shell')
+  end)
+end
+
 return M
