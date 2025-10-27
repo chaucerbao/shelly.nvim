@@ -26,12 +26,12 @@ local function remove_from_comment(line)
   -- Remove common comment prefixes
   line = line:gsub('^#%s*', '')
   line = line:gsub('^//%s*', '')
-  line = line:gsub('^--%s*', '')
+  line = line:gsub('^%-%-%s*', '')
   line = line:gsub('^/%*%s*', '')
-  line = line:gsub('^<!--%s*', '')
+  line = line:gsub('^<%-%-%s*', '')
   -- Remove common comment suffixes
   line = line:gsub('%s*%*/$', '')
-  line = line:gsub('%s*-->$', '')
+  line = line:gsub('%s*%-%->$', '')
   return line
 end
 
