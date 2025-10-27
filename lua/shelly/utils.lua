@@ -269,12 +269,12 @@ end
 --- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
 function M.execute_shell(command, callback)
   local function split_into_lines(text)
-    if not text then
+    if not text or text == '' then
       return {}
     end
-    local lines = {}
-    for line in (text .. '\n'):gmatch('(.-)\n') do
-      lines[#lines + 1] = line
+    local lines = vim.split(text, '\n')
+    if lines[#lines] == '' then
+      table.remove(lines, #lines)
     end
     return lines
   end
