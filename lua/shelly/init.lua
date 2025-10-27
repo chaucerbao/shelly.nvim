@@ -6,13 +6,10 @@ local M = {}
 ---@type table<string, integer>
 local scratch_buffers = {}
 
---- Display results in a scratch buffer per filetype
 ---@param result FiletypeRunnerResult Execution results
----@param use_vertical boolean Whether to use vertical split
 ---@param filetype string Filetype for runner-specific buffer
---- Display results in a reusable scratch buffer window per filetype.
---- Combines stdout and stderr, creates or reuses a scratch buffer, and displays output.
-local function display_results(result, use_vertical, filetype)
+---@param opts table|nil Optional table: { vertical = boolean }
+local function display_results(result, filetype, opts)
   -- Combine stdout and stderr
   local output = {}
 
@@ -60,8 +57,9 @@ local function display_results(result, use_vertical, filetype)
   end
 
   -- Open in split if not already visible
+  local vertical = opts and opts.vertical or false
   if not scratch_winnr then
-    if use_vertical then
+    if vertical then
       vim.cmd('vsplit')
     else
       vim.cmd('split')
@@ -146,7 +144,7 @@ function M.execute_selection()
     end
 
     local original_win = vim.api.nvim_get_current_win()
-    display_results(result, use_vertical, filetype)
+    display_results(result, filetype, { vertical = use_vertical })
 
     local focus = false
     if evaluated.shelly_args.focus == true then
@@ -184,7 +182,7 @@ function M.execute_shell(command, opts)
 
   local evaluated = utils.evaluate({ command })
   runner.execute(evaluated, function(result)
-    display_results(result, use_vertical, 'shell')
+    display_results(result, 'shell', { vertical = use_vertical })
   end)
 end
 
