@@ -7,7 +7,7 @@ local M = {}
 local scratch_buffers = {}
 
 --- Display results in a scratch buffer per filetype
----@param result {stdout: string[], stderr: string[]} Execution results
+---@param result FiletypeRunnerResult Execution results
 ---@param use_vertical boolean Whether to use vertical split
 ---@param filetype string Filetype for runner-specific buffer
 --- Display results in a reusable scratch buffer window per filetype.
@@ -43,8 +43,11 @@ local function display_results(result, use_vertical, filetype)
   if not scratch_bufnr or not vim.api.nvim_buf_is_valid(scratch_bufnr) then
     scratch_bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_name(scratch_bufnr, bufname)
-    vim.bo[scratch_bufnr].filetype = 'shelly-output'
     scratch_buffers[filetype] = scratch_bufnr
+  end
+  -- Set buffer filetype only if result.filetype is not nil
+  if result.filetype ~= nil then
+    vim.bo[scratch_bufnr].filetype = result.filetype
   end
 
   -- Set buffer content

@@ -7,7 +7,9 @@
 ---  processed_lines: string[]
 ---}
 
+---@alias FiletypeRunnerResult { stdout: string[], stderr: string[], filetype?: string | nil }
+
 ---@alias FiletypeRunner fun(
 ---  evaluated: Evaluated,
----  callback: fun(result: { stdout: string[], stderr: string[] }
+---  callback: fun(result: FiletypeRunnerResult)
 ---)
