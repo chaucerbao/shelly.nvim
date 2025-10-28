@@ -48,28 +48,7 @@ local function execute(evaluated, callback)
     end
     utils.execute_shell(command, nil, callback)
   else
-    local commands_str = table.concat(evaluated.processed_lines, '\n')
-    local pipe_command = { 'bash', '-c', "echo '" .. commands_str:gsub("'", "'\\''") .. "' | redis-cli" }
-    if connection_string then
-      pipe_command[3] = pipe_command[3] .. " -u '" .. connection_string:gsub("'", "'\\''") .. "'"
-    else
-      if evaluated.dictionary.host then
-        pipe_command[3] = pipe_command[3] .. ' -h ' .. evaluated.dictionary.host
-      end
-      if evaluated.dictionary.port then
-        pipe_command[3] = pipe_command[3] .. ' -p ' .. evaluated.dictionary.port
-      end
-      if evaluated.dictionary.auth or evaluated.dictionary.password then
-        pipe_command[3] = pipe_command[3]
-          .. " -a '"
-          .. (evaluated.dictionary.auth or evaluated.dictionary.password):gsub("'", "'\\''")
-          .. "'"
-      end
-      if evaluated.dictionary.db then
-        pipe_command[3] = pipe_command[3] .. ' -n ' .. evaluated.dictionary.db
-      end
-    end
-    utils.execute_shell(pipe_command, nil, callback)
+    utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
   end
 end
 

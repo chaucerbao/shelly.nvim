@@ -11,9 +11,9 @@ local function execute(evaluated, callback)
 
   -- Check if CLI lua is available
   if vim.fn.executable('lua') == 1 then
-    local command = { 'lua', '-e', table.concat(evaluated.processed_lines, '\n') }
+    local command = { 'lua' }
     vim.list_extend(command, evaluated.command_args)
-    utils.execute_shell(command, nil, callback)
+    utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
     return
   end
 

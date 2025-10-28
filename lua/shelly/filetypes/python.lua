@@ -8,9 +8,9 @@ local function execute(evaluated, callback)
       callback({ stdout = {}, stderr = { 'No code to execute' } })
     end)
   end
-  local command = { 'python3', '-c', table.concat(evaluated.processed_lines, '\n') }
+  local command = { 'python3' }
   vim.list_extend(command, evaluated.command_args)
-  utils.execute_shell(command, nil, callback)
+  utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
 end
 
 return { execute = execute }
