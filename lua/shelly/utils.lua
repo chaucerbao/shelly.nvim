@@ -173,52 +173,81 @@ function M.get_context(opts)
   return { lines = context_lines }
 end
 
---- Evaluates lines to extract Shelly syntax: args, substitutions, dictionaries, command args, URLs.
---- Removes comment prefixes, parses special lines, applies substitutions.
+--- Evaluates Shelly syntax in lines: parses arguments, substitutions, dictionaries, command args, URLs.
 --- @param lines string[] Lines to evaluate
---- @return table { shelly_args: table, shelly_substitutions: table, dictionary: table, command_args: string[], urls: string[], processed_lines: string[] }
+--- @return table {
+---   shelly_args: table<string, string|boolean>,
+---   shelly_substitutions: table<string, string>,
+---   dictionary: table<string, string>,
+---   command_args: string[],
+---   urls: string[],
+---   processed_lines: string[]
+--- }
 function M.evaluate(lines)
-  local shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines = {}, {}, {}, {}, {}, {}
-  for _, line in ipairs(lines) do
-    if line:match('^%s*$') then
-      goto continue
-    end
-    local arg_match = line:match('^%s*@@(%S+)')
-    if arg_match then
-      local key, value = arg_match:match('^([^=]+)=(.+)$')
-      if key and value then
-        shelly_args[key] = vim.trim(value)
-      elseif arg_match:match('^no') then
-        shelly_args[arg_match] = false
+  local shelly_args = {}
+  local shelly_substitutions = {}
+  local dictionary = {}
+  local command_args = {}
+  local urls = {}
+  local processed_lines = {}
+  local found_first_processed = false
+  local line_count = #lines
+  local idx = 1
+  while idx <= line_count do
+    local current_line = lines[idx]
+    if not found_first_processed then
+      if current_line:match('^%s*$') then
+        idx = idx + 1
+      elseif current_line:match('^%s*@@(%S+)') then
+        local arg_match = current_line:match('^%s*@@(%S+)')
+        local key, value = arg_match:match('^([^=]+)=(.+)$')
+        if key and value then
+          shelly_args[key] = vim.trim(value)
+        elseif arg_match:match('^no') then
+          shelly_args[arg_match] = false
+        else
+          shelly_args[arg_match] = true
+        end
+        idx = idx + 1
+      elseif current_line:match('^%s*[%w%+%-%.]+://') then
+        table.insert(urls, vim.trim(current_line))
+        idx = idx + 1
+      elseif
+        current_line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
+        and not current_line:match('^%-%-')
+        and not current_line:match('^%-[^-]')
+      then
+        local var_key, var_value = current_line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
+        shelly_substitutions[var_key] = var_value
+        idx = idx + 1
+      elseif current_line:match('^%s*(%S+)%s*:%s*(.+)%s*$') then
+        local dict_key, dict_value = current_line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
+        dictionary[dict_key] = dict_value
+        idx = idx + 1
+      elseif is_command_line_argument(current_line) then
+        table.insert(command_args, vim.trim(current_line))
+        idx = idx + 1
       else
-        shelly_args[arg_match] = true
+        local substituted_line = current_line
+        for sub_key, sub_value in pairs(shelly_substitutions) do
+          substituted_line = substituted_line:gsub(sub_key, sub_value)
+        end
+        table.insert(processed_lines, substituted_line)
+        found_first_processed = true
+        -- Append remaining lines as processed lines with substitutions
+        for append_idx = idx + 1, line_count do
+          local append_line = lines[append_idx]
+          local substituted_append = append_line
+          for sub_key, sub_value in pairs(shelly_substitutions) do
+            substituted_append = substituted_append:gsub(sub_key, sub_value)
+          end
+          table.insert(processed_lines, substituted_append)
+        end
+        break
       end
-      goto continue
+    else
+      break
     end
-    if line:match('^%s*[%w%+%-%.]+://') then
-      table.insert(urls, vim.trim(line))
-      goto continue
-    end
-    local var_key, var_value = line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
-    if var_key and var_value and not line:match('^%-%-') and not line:match('^%-[^-]') then
-      shelly_substitutions[var_key] = var_value
-      goto continue
-    end
-    local dict_key, dict_value = line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
-    if dict_key and dict_value then
-      dictionary[dict_key] = dict_value
-      goto continue
-    end
-    if is_command_line_argument(line) then
-      table.insert(command_args, vim.trim(line))
-      goto continue
-    end
-    local processed = line
-    for var_key, var_value in pairs(shelly_substitutions) do
-      processed = processed:gsub(var_key, var_value)
-    end
-    table.insert(processed_lines, processed)
-    ::continue::
   end
   return {
     shelly_args = shelly_args,
