@@ -47,6 +47,13 @@ local function execute(evaluated, callback)
   local command = { 'curl', '-i', '-s', '-L', '-X', (method == 'GQL' and 'POST' or method) }
   vim.list_extend(command, evaluated.command_args)
 
+  if type(evaluated.dictionary) == 'table' then
+    for key, value in pairs(evaluated.dictionary) do
+      table.insert(command, '-H')
+      table.insert(command, string.format('%s: %s', key, value))
+    end
+  end
+
   local function handle_result(result)
     local headers, body_output = {}, {}
     local current_headers, in_headers = {}, true
