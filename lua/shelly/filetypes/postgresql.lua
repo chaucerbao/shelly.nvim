@@ -45,7 +45,7 @@ local function execute(evaluated, callback)
   vim.list_extend(command, evaluated.command_args)
   table.insert(command, '-c')
   table.insert(command, sql)
-  utils.execute_shell(command, callback)
+  utils.execute_shell(command, nil, callback)
 end
 
 return { execute = execute }

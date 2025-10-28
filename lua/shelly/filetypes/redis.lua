@@ -46,7 +46,7 @@ local function execute(evaluated, callback)
     for _, part in ipairs(vim.split(evaluated.processed_lines[1], '%s+')) do
       table.insert(command, part)
     end
-    utils.execute_shell(command, callback)
+    utils.execute_shell(command, nil, callback)
   else
     local commands_str = table.concat(evaluated.processed_lines, '\n')
     local pipe_command = { 'bash', '-c', "echo '" .. commands_str:gsub("'", "'\\''") .. "' | redis-cli" }
@@ -69,7 +69,7 @@ local function execute(evaluated, callback)
         pipe_command[3] = pipe_command[3] .. ' -n ' .. evaluated.dictionary.db
       end
     end
-    utils.execute_shell(pipe_command, callback)
+    utils.execute_shell(pipe_command, nil, callback)
   end
 end
 

@@ -10,7 +10,7 @@ local function execute(evaluated, callback)
   end
   local command = { 'python3', '-c', table.concat(evaluated.processed_lines, '\n') }
   vim.list_extend(command, evaluated.command_args)
-  utils.execute_shell(command, callback)
+  utils.execute_shell(command, nil, callback)
 end
 
 return { execute = execute }

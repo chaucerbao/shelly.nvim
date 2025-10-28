@@ -129,7 +129,7 @@ local function execute(evaluated, callback)
     table.insert(command, 'Content-Type: application/json')
     table.insert(command, '--data')
     table.insert(command, vim.json.encode({ query = table.concat(body_lines, '\n') }))
-    return utils.execute_shell(command, handle_result)
+    return utils.execute_shell(command, nil, handle_result)
   end
 
   if (method == 'POST' or method == 'PUT') and #body_lines > 0 then
@@ -149,7 +149,7 @@ local function execute(evaluated, callback)
         end
       end
     end
-    return utils.execute_shell(command, handle_result)
+    return utils.execute_shell(command, nil, handle_result)
   end
 
   if (method == 'GET' or method == 'DELETE') and #body_lines > 0 then
@@ -166,7 +166,7 @@ local function execute(evaluated, callback)
   end
 
   table.insert(command, url)
-  utils.execute_shell(command, handle_result)
+  utils.execute_shell(command, nil, handle_result)
 end
 
 return { execute = execute }

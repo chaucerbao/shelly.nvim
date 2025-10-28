@@ -232,8 +232,12 @@ end
 
 --- Executes a shell command asynchronously using vim.system.
 --- @param command string[] Command as list of arguments
+--- @param opts table|nil Options table passed to vim.system (see :h vim.system)
 --- @param callback fun(result: table) Callback with result table {stdout: string[], stderr: string[]}
-function M.execute_shell(command, callback)
+function M.execute_shell(command, opts, callback)
+  opts = opts or {}
+  opts.text = true
+
   --- Splits text into lines, removing trailing empty line.
   --- @param text string
   --- @return string[]
@@ -247,7 +251,7 @@ function M.execute_shell(command, callback)
     end
     return lines
   end
-  vim.system(command, { text = true }, function(result)
+  vim.system(command, opts, function(result)
     vim.schedule(function()
       callback({
         stdout = split_into_lines(result.stdout),
