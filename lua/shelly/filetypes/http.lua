@@ -44,7 +44,7 @@ local function execute(evaluated, callback)
     end
   end
 
-  local command = { 'curl', '-i', '-s', '-L', '-X', method }
+  local command = { 'curl', '-i', '-s', '-L', '-X', (method == 'GQL' and 'POST' or method) }
   vim.list_extend(command, evaluated.command_args)
 
   local function handle_result(result)
