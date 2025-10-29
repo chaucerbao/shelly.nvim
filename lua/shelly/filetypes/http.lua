@@ -13,13 +13,13 @@ end
 -- @return string method, string url, integer idx
 local function parse_method_url(lines)
   for line_index, line_text in ipairs(lines) do
-    local http_method, request_url = line_text:match('^(%u+)%s+(%S+)')
+    local http_method, request_url = line_text:match('^(%u+)%s+(%w[%w+.-]*://%S+)')
     if http_method and request_url then
-      return http_method, request_url, line_index
+      return string.upper(http_method), request_url, line_index
     end
   end
   for line_index, line_text in ipairs(lines) do
-    local request_url = line_text:match('(https?://%S+)')
+    local request_url = line_text:match('(%w[%w+.-]*://%S+)')
     if request_url then
       return 'GET', request_url, line_index
     end
