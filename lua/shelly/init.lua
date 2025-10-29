@@ -60,9 +60,13 @@ local function display_results(result, filetype, opts)
       end
     end
     vim.api.nvim_win_set_buf(0, scratch_bufnr)
+    scratch_winnr = vim.api.nvim_get_current_win()
   else
     vim.api.nvim_set_current_win(scratch_winnr)
   end
+
+  -- Scroll to the top of the scratch buffer
+  vim.api.nvim_win_set_cursor(scratch_winnr, { 1, 0 })
 end
 
 --- Execute the main entry point for Shelly.
