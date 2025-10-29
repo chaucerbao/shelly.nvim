@@ -173,6 +173,63 @@ function M.get_context(opts)
   return { lines = context_lines }
 end
 
+--- Parses Shelly argument lines (e.g. @@key, @@key=value, @@nofoo)
+--- @param line string
+--- @return string|nil key, string|boolean|nil value
+function M.parse_shelly_arg(line)
+  local arg_match = line:match('^%s*@@(%S+)')
+  if not arg_match then
+    return nil
+  end
+  local key, value = arg_match:match('^([^=]+)=(.+)$')
+  if key and value then
+    return key, vim.trim(value)
+  elseif arg_match:match('^no') then
+    return arg_match, false
+  else
+    return arg_match, true
+  end
+end
+
+--- Parses URL lines
+--- @param line string
+--- @return string|nil url
+function M.parse_url(line)
+  local url = line:match('^%s*[%w%+%-%.]+://%S+')
+  return url and vim.trim(line) or nil
+end
+
+--- Parses substitution lines (e.g. key = value)
+--- @param line string
+--- @return string|nil key, string|nil value
+function M.parse_substitution(line)
+  if line:match('^%-%-') or line:match('^%-[^-]') then
+    return nil
+  end
+  local key, value = line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
+  return key, value
+end
+
+--- Parses dictionary lines (e.g. key: value)
+--- @param line string
+--- @return string|nil key, string|nil value
+function M.parse_dictionary(line)
+  local key, value = line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
+  return key, value
+end
+
+--- Utility function to substitute keys in a line using a substitutions table.
+--- Each key in substitutions is replaced by its value in the line.
+--- @param line string Line to process
+--- @param substitutions table<string, string> Table of substitutions
+--- @return string Substituted line
+function M.substitute_line(line, substitutions)
+  for sub_key, sub_value in pairs(substitutions) do
+    line = line:gsub(sub_key, sub_value)
+  end
+  return line
+end
+
 --- Evaluates Shelly syntax in lines: parses arguments, substitutions, dictionaries, command args, URLs.
 --- @param lines string[] Lines to evaluate
 --- @return table {
