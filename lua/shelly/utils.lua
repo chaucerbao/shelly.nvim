@@ -232,80 +232,62 @@ end
 
 --- Evaluates Shelly syntax in lines: parses arguments, substitutions, dictionaries, command args, URLs.
 --- @param lines string[] Lines to evaluate
---- @return table {
----   shelly_args: table<string, string|boolean>,
----   shelly_substitutions: table<string, string>,
----   dictionary: table<string, string>,
----   command_args: string[],
----   urls: string[],
----   processed_lines: string[]
---- }
+--- @return Evaluated
 function M.evaluate(lines)
-  local shelly_args = {}
-  local shelly_substitutions = {}
-  local dictionary = {}
-  local command_args = {}
-  local urls = {}
-  local processed_lines = {}
+  local shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines = {}, {}, {}, {}, {}, {}
   local found_first_processed = false
   local line_count = #lines
-  local idx = 1
-  while idx <= line_count do
-    local current_line = lines[idx]
-    if not found_first_processed then
-      if current_line:match('^%s*$') then
-        idx = idx + 1
-      elseif current_line:match('^%s*@@(%S+)') then
-        local arg_match = current_line:match('^%s*@@(%S+)')
-        local key, value = arg_match:match('^([^=]+)=(.+)$')
-        if key and value then
-          shelly_args[key] = vim.trim(value)
-        elseif arg_match:match('^no') then
-          shelly_args[arg_match] = false
-        else
-          shelly_args[arg_match] = true
-        end
-        idx = idx + 1
-      elseif current_line:match('^%s*[%w%+%-%.]+://') then
-        table.insert(urls, vim.trim(current_line))
-        idx = idx + 1
-      elseif
-        current_line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
-        and not current_line:match('^%-%-')
-        and not current_line:match('^%-[^-]')
-      then
-        local var_key, var_value = current_line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
-        shelly_substitutions[var_key] = var_value
-        idx = idx + 1
-      elseif current_line:match('^%s*(%S+)%s*:%s*(.+)%s*$') then
-        local dict_key, dict_value = current_line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
-        dictionary[dict_key] = dict_value
-        idx = idx + 1
-      elseif is_command_line_argument(current_line) then
-        table.insert(command_args, vim.trim(current_line))
-        idx = idx + 1
-      else
-        local substituted_line = current_line
-        for sub_key, sub_value in pairs(shelly_substitutions) do
-          substituted_line = substituted_line:gsub(sub_key, sub_value)
-        end
-        table.insert(processed_lines, substituted_line)
-        found_first_processed = true
-        -- Append remaining lines as processed lines with substitutions
-        for append_idx = idx + 1, line_count do
-          local append_line = lines[append_idx]
-          local substituted_append = append_line
-          for sub_key, sub_value in pairs(shelly_substitutions) do
-            substituted_append = substituted_append:gsub(sub_key, sub_value)
-          end
-          table.insert(processed_lines, substituted_append)
-        end
-        break
-      end
-    else
+
+  for idx = 1, line_count do
+    if found_first_processed then
       break
     end
+    local line = vim.trim(lines[idx])
+    if line == '' then
+      goto continue
+    end
+    local substituted_line = M.substitute_line(line, shelly_substitutions)
+
+    local arg_key, arg_val = M.parse_shelly_arg(substituted_line)
+    if arg_key ~= nil then
+      shelly_args[arg_key] = arg_val
+      goto continue
+    end
+
+    local url = M.parse_url(substituted_line)
+    if url ~= nil then
+      table.insert(urls, url)
+      goto continue
+    end
+
+    local sub_key, sub_val = M.parse_substitution(substituted_line)
+    if sub_key ~= nil and sub_val ~= nil then
+      shelly_substitutions[sub_key] = sub_val
+      goto continue
+    end
+
+    local dict_key, dict_val = M.parse_dictionary(substituted_line)
+    if dict_key ~= nil and dict_val ~= nil then
+      dictionary[dict_key] = dict_val
+      goto continue
+    end
+
+    if is_command_line_argument(substituted_line) then
+      table.insert(command_args, substituted_line)
+      goto continue
+    end
+
+    -- All parsers failed: start processed_lines
+    table.insert(processed_lines, substituted_line)
+    found_first_processed = true
+    for append_idx = idx + 1, line_count do
+      local append_raw = lines[append_idx]
+      local append_sub = M.substitute_line(append_raw, shelly_substitutions)
+      table.insert(processed_lines, append_sub)
+    end
+    ::continue::
   end
+
   return {
     shelly_args = shelly_args,
     shelly_substitutions = shelly_substitutions,
