@@ -10,7 +10,7 @@ local function execute(evaluated, callback)
   end
   local command = { 'bash' }
   vim.list_extend(command, evaluated.command_args)
-  utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
+  utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
 end
 
 return { execute = execute }

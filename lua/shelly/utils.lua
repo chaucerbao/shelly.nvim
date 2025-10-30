@@ -319,6 +319,15 @@ function M.execute_shell(command, opts, callback)
     end
     return lines
   end
+
+  if opts.shelly_args ~= nil then
+    if opts.shelly_args.cmd then
+      print(vim.inspect(command))
+    end
+
+    opts.shelly_args = nil
+  end
+
   vim.system(command, opts, function(result)
     vim.schedule(function()
       callback({

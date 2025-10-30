@@ -46,9 +46,9 @@ local function execute(evaluated, callback)
     for _, part in ipairs(vim.split(evaluated.processed_lines[1], '%s+')) do
       table.insert(command, part)
     end
-    utils.execute_shell(command, nil, callback)
+    utils.execute_shell(command, { shelly_args = evaluated.shelly_args }, callback)
   else
-    utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
+    utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
   end
 end
 

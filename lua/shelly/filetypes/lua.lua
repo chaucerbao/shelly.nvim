@@ -13,7 +13,7 @@ local function execute(evaluated, callback)
   if vim.fn.executable('lua') == 1 then
     local command = { 'lua' }
     vim.list_extend(command, evaluated.command_args)
-    utils.execute_shell(command, { stdin = evaluated.processed_lines }, callback)
+    utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
     return
   end
 
