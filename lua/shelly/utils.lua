@@ -240,7 +240,7 @@ end
 function M.evaluate(lines, opts)
   opts = opts or {}
 
-  local shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines = {}, {}, {}, {}, {}, {}
+  local shelly_args, shelly_substitutions, dictionary, command_args, urls, text_lines = {}, {}, {}, {}, {}, {}
   local found_first_processed = false
   local line_count = #lines
 
@@ -284,13 +284,13 @@ function M.evaluate(lines, opts)
     end
 
     if opts.on_text == 'collect' then
-      -- All parsers failed: start processed_lines
-      table.insert(processed_lines, substituted_line)
+      -- All parsers failed: start text_lines
+      table.insert(text_lines, substituted_line)
       found_first_processed = true
       for append_idx = idx + 1, line_count do
         local append_raw = lines[append_idx]
         local append_sub = M.substitute_line(append_raw, shelly_substitutions)
-        table.insert(processed_lines, append_sub)
+        table.insert(text_lines, append_sub)
       end
     end
     ::continue::
@@ -302,7 +302,7 @@ function M.evaluate(lines, opts)
     dictionary = dictionary,
     command_args = command_args,
     urls = urls,
-    processed_lines = processed_lines,
+    lines = text_lines,
   }
 end
 

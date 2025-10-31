@@ -4,7 +4,7 @@
 ---  dictionary: table<string, string>,
 ---  command_args: string[],
 ---  urls: string[],
----  processed_lines: string[]
+---  lines: string[]
 ---}
 
 ---@alias FiletypeRunnerResult { stdout: string[], stderr: string[], filetype?: string | nil }

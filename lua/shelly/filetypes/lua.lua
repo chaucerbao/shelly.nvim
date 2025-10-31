@@ -3,7 +3,7 @@ local utils = require('shelly.utils')
 --- Executes Lua code using the Lua interpreter.
 --- @type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.processed_lines == 0 then
+  if #evaluated.lines == 0 then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No code to execute' } })
     end)
@@ -13,12 +13,12 @@ local function execute(evaluated, callback)
   if vim.fn.executable('lua') == 1 then
     local command = { 'lua' }
     vim.list_extend(command, evaluated.command_args)
-    utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
+    utils.execute_shell(command, { stdin = evaluated.lines, shelly_args = evaluated.shelly_args }, callback)
     return
   end
 
   -- Fallback: Use Neovim's built-in Lua interpreter
-  local code = table.concat(evaluated.processed_lines, '\n')
+  local code = table.concat(evaluated.lines, '\n')
   local output = {}
   local function capture_print(...)
     local args = { ... }

@@ -3,13 +3,13 @@ local utils = require('shelly.utils')
 --- Executes PostgreSQL queries using psql.
 --- @type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.processed_lines == 0 then
+  if #evaluated.lines == 0 then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No SQL to execute' } })
     end)
   end
   local command = { 'psql' }
-  local sql = table.concat(evaluated.processed_lines, '\n')
+  local sql = table.concat(evaluated.lines, '\n')
   local connection_string = nil
   for _, url in ipairs(evaluated.urls) do
     if url:match('^postgres[ql]*://') then
@@ -43,7 +43,7 @@ local function execute(evaluated, callback)
     end
   end
   vim.list_extend(command, evaluated.command_args)
-  utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
+  utils.execute_shell(command, { stdin = evaluated.lines, shelly_args = evaluated.shelly_args }, callback)
 end
 
 return { execute = execute }

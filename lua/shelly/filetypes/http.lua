@@ -30,17 +30,17 @@ end
 --- Executes HTTP requests using curl.
 --- @type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.processed_lines == 0 then
+  if #evaluated.lines == 0 then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
     end)
   end
 
-  local method, url, start_idx = parse_method_url(evaluated.processed_lines)
+  local method, url, start_idx = parse_method_url(evaluated.lines)
   local body_lines = {}
-  for line_index = start_idx + 1, #evaluated.processed_lines do
-    if evaluated.processed_lines[line_index] and evaluated.processed_lines[line_index]:match('%S') then
-      body_lines[#body_lines + 1] = evaluated.processed_lines[line_index]
+  for line_index = start_idx + 1, #evaluated.lines do
+    if evaluated.lines[line_index] and evaluated.lines[line_index]:match('%S') then
+      body_lines[#body_lines + 1] = evaluated.lines[line_index]
     end
   end
 

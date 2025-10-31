@@ -3,7 +3,7 @@ local utils = require('shelly.utils')
 --- Executes Redis commands using redis-cli.
 --- @type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.processed_lines == 0 then
+  if #evaluated.lines == 0 then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No Redis commands to execute' } })
     end)
@@ -42,13 +42,13 @@ local function execute(evaluated, callback)
     end
   end
   vim.list_extend(command, evaluated.command_args)
-  if #evaluated.processed_lines == 1 then
-    for _, part in ipairs(vim.split(evaluated.processed_lines[1], '%s+')) do
+  if #evaluated.lines == 1 then
+    for _, part in ipairs(vim.split(evaluated.lines[1], '%s+')) do
       table.insert(command, part)
     end
     utils.execute_shell(command, { shelly_args = evaluated.shelly_args }, callback)
   else
-    utils.execute_shell(command, { stdin = evaluated.processed_lines, shelly_args = evaluated.shelly_args }, callback)
+    utils.execute_shell(command, { stdin = evaluated.lines, shelly_args = evaluated.shelly_args }, callback)
   end
 end
 
