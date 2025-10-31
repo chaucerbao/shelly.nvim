@@ -79,10 +79,9 @@ function M.execute_selection()
   local context = utils.get_context({ until_line = until_line })
   local filetype = selection.filetype
 
-  -- Concatenate context and selection lines efficiently
-  local lines = vim.list_extend(vim.deepcopy(context.lines), selection.lines)
+  local evaluated = utils.evaluate(context.lines)
+  evaluated = utils.evaluate(selection.lines, { mutate_existing = evaluated, on_text = 'collect' })
 
-  local evaluated = utils.evaluate(lines, { on_text = 'collect' })
   local use_vertical = evaluated.shelly_args.vert or evaluated.shelly_args.vertical or false
   if evaluated.shelly_args.novert or evaluated.shelly_args.novertical then
     use_vertical = false

@@ -241,7 +241,7 @@ end
 function M.evaluate(lines, opts)
   opts = opts or {}
 
-  local evaluated = opts.mutate_existing
+  local evaluated = opts.mutate_existing and (vim.deepcopy(opts.mutate_existing))
     or { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
 
   local line_count = #lines
