@@ -244,13 +244,9 @@ function M.evaluate(lines, opts)
   local evaluated = opts.mutate_existing
     or { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
 
-  local found_first_processed = false
   local line_count = #lines
 
   for i = 1, line_count do
-    if found_first_processed then
-      break
-    end
     local line = vim.trim(lines[i])
     if line == '' then
       goto continue
@@ -287,19 +283,15 @@ function M.evaluate(lines, opts)
     end
 
     if opts.on_text == 'collect' then
-      -- All parsers failed: start text_lines
-      table.insert(evaluated.lines, substituted_line)
-      found_first_processed = true
-      for append_idx = i + 1, line_count do
-        local append_raw = lines[append_idx]
-        local append_sub = M.substitute_line(append_raw, evaluated.shelly_substitutions)
-        table.insert(evaluated.lines, append_sub)
+      for j = i, line_count do
+        table.insert(evaluated.lines, M.substitute_line(lines[j], evaluated.shelly_substitutions))
       end
+      break
     end
+
     ::continue::
   end
 
-  print(vim.inspect(evaluated))
   return evaluated
 end
 
