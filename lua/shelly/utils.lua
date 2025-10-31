@@ -19,7 +19,7 @@ end
 --- Does not strip if line is a command line argument.
 --- @param line string Line to clean
 --- @return string Cleaned line
-local function remove_from_comment(line)
+local function uncomment(line)
   line = vim.trim(line)
   if is_command_line_argument(line) then
     return line
@@ -92,52 +92,51 @@ end
 
 --- Gets the current selection and determines lines and filetype.
 --- Priority: visual selection > markdown code block > entire buffer.
---- @return table { lines: string[], filetype: string, line_start: integer, line_end: integer, selection_type: 'visual'|'code-block'|'buffer' }
+--- @return { lines: string[], filetype: string, line_start: integer, line_end: integer, selection_type: 'visual'|'code-block'|'buffer' }
 function M.get_selection()
-  local mode = vim.fn.mode()
-  local selected_lines = {}
+  local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, -1, false)
   local filetype = vim.bo.filetype
+
+  local mode = vim.fn.mode()
   if mode == 'v' or mode == 'V' or mode == '\22' then
     local selection = get_visual_selection()
-    local line_start, line_end = selection.line_start, selection.line_end
-    local bufnr = vim.api.nvim_get_current_buf()
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local in_block, language = get_markdown_code_block(lines, line_start)
+    local in_block, language = get_markdown_code_block(lines, selection.line_start)
     if in_block and language then
       filetype = language
     end
+
     return {
       lines = selection.lines,
       filetype = filetype,
-      line_start = line_start,
-      line_end = line_end,
+      line_start = selection.line_start,
+      line_end = selection.line_end,
       selection_type = 'visual',
     }
   end
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
   local cursor_line = vim.fn.line('.')
-  local in_block, language, line_start, line_end = get_markdown_code_block(lines, cursor_line)
-  if in_block and line_start and line_end then
-    for i = line_start + 1, line_end - 1 do
-      table.insert(selected_lines, lines[i])
+  local in_block, language, block_start, block_end = get_markdown_code_block(lines, cursor_line)
+  if in_block and block_start and block_end then
+    local block_lines = {}
+    for i = block_start + 1, block_end - 1 do
+      block_lines[#block_lines + 1] = lines[i]
     end
     if language then
       filetype = language
     end
+
     return {
-      lines = selected_lines,
+      lines = block_lines,
       filetype = filetype,
-      line_start = line_start + 1,
-      line_end = line_end - 1,
+      line_start = block_start + 1,
+      line_end = block_end - 1,
       selection_type = 'code-block',
     }
   end
-  for _, line in ipairs(lines) do
-    table.insert(selected_lines, line)
-  end
+
+  -- Fallback: entire buffer
   return {
-    lines = selected_lines,
+    lines = lines,
     filetype = filetype,
     line_start = 1,
     line_end = #lines,
@@ -151,12 +150,14 @@ end
 --- @return table { lines: string[] }
 function M.get_context(opts)
   opts = opts or {}
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+  local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, -1, false)
   local until_line = opts.until_line or #lines
   local context_lines, in_block = {}, false
+
   for i = 1, math.min(#lines, until_line) do
-    local line = remove_from_comment(lines[i])
+    local line = uncomment(lines[i])
+
     if not in_block then
       local language = line:match(CODE_BLOCK_START_PATTERN)
       if language and (language == 'context' or language == 'ctx') then
@@ -170,6 +171,7 @@ function M.get_context(opts)
       end
     end
   end
+
   return { lines = context_lines }
 end
 
