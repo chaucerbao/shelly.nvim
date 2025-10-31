@@ -175,22 +175,35 @@ function M.get_context(opts)
   return { lines = context_lines }
 end
 
---- Parses Shelly argument lines (e.g. @@key, @@key=value, @@nofoo)
---- @param line string
---- @return string|nil key, string|boolean|nil value
+--- Parses Shelly argument lines (e.g. @@key, @@key = value, @@no:key)
+--- @param line string The line to parse
+--- @return string|nil key The argument key, or nil if not matched
+--- @return string|boolean|nil value The argument value, true for flags, nil for negations or no match
 function M.parse_shelly_arg(line)
-  local arg_match = line:match('^%s*@@(%S+)')
-  if not arg_match then
+  local arg = line:match('^%s*@@%s*(.+)')
+  if not arg then
     return nil
   end
-  local key, value = arg_match:match('^([^=]+)=(.+)$')
-  if key and value then
-    return key, vim.trim(value)
-  elseif arg_match:match('^no') then
-    return arg_match, false
-  else
-    return arg_match, true
+
+  -- @@key = value
+  local key, value = arg:match('^(%w+)%s*=%s*(.+)$')
+  if key then
+    return vim.trim(key), vim.trim(value)
   end
+
+  -- @@no:key
+  local no_key = arg:match('^no:(%w+)%s*$')
+  if no_key then
+    return vim.trim(no_key), nil
+  end
+
+  -- @@key
+  local simple_key = arg:match('^(%w+)%s*$')
+  if simple_key then
+    return vim.trim(simple_key), true
+  end
+
+  return nil
 end
 
 --- Parses URL lines
@@ -235,13 +248,13 @@ end
 --- Evaluates Shelly syntax in lines: parses arguments, substitutions, dictionaries, command args, URLs.
 --- @param lines string[] Lines to evaluate
 --- @param opts table? Optional table of options. Supported flags:
----   on_text: 'ignore'|'collect'
----   mutate_existing: Evaluated?
+---   previous: Evaluated?
+---   parse_text_lines: boolean?
 --- @return Evaluated
 function M.evaluate(lines, opts)
   opts = opts or {}
 
-  local evaluated = opts.mutate_existing and (vim.deepcopy(opts.mutate_existing))
+  local evaluated = opts.previous and (vim.deepcopy(opts.previous))
     or { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
 
   local line_count = #lines
@@ -282,7 +295,7 @@ function M.evaluate(lines, opts)
       goto continue
     end
 
-    if opts.on_text == 'collect' then
+    if opts.parse_text_lines then
       for j = i, line_count do
         table.insert(evaluated.lines, M.substitute_line(lines[j], evaluated.shelly_substitutions))
       end

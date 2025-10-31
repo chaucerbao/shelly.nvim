@@ -80,10 +80,10 @@ function M.execute_selection()
   local filetype = selection.filetype
 
   local evaluated = utils.evaluate(context.lines)
-  evaluated = utils.evaluate(selection.lines, { mutate_existing = evaluated, on_text = 'collect' })
+  evaluated = utils.evaluate(selection.lines, { previous = evaluated, parse_text_lines = true })
 
-  local use_vertical = evaluated.shelly_args.vert or evaluated.shelly_args.vertical or false
-  if evaluated.shelly_args.novert or evaluated.shelly_args.novertical then
+  local use_vertical = evaluated.shelly_args.vertical == true
+  if evaluated.shelly_args.novertical == true then
     use_vertical = false
   end
 
