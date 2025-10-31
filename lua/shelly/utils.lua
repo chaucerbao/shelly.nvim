@@ -236,74 +236,71 @@ end
 --- @param lines string[] Lines to evaluate
 --- @param opts table? Optional table of options. Supported flags:
 ---   on_text: 'ignore'|'collect'
+---   mutate_existing: Evaluated?
 --- @return Evaluated
 function M.evaluate(lines, opts)
   opts = opts or {}
 
-  local shelly_args, shelly_substitutions, dictionary, command_args, urls, text_lines = {}, {}, {}, {}, {}, {}
+  local evaluated = opts.mutate_existing
+    or { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
+
   local found_first_processed = false
   local line_count = #lines
 
-  for idx = 1, line_count do
+  for i = 1, line_count do
     if found_first_processed then
       break
     end
-    local line = vim.trim(lines[idx])
+    local line = vim.trim(lines[i])
     if line == '' then
       goto continue
     end
-    local substituted_line = M.substitute_line(line, shelly_substitutions)
+    local substituted_line = M.substitute_line(line, evaluated.shelly_substitutions)
 
     local arg_key, arg_val = M.parse_shelly_arg(substituted_line)
     if arg_key ~= nil then
-      shelly_args[arg_key] = arg_val
+      evaluated.shelly_args[arg_key] = arg_val
       goto continue
     end
 
     local url = M.parse_url(substituted_line)
     if url ~= nil then
-      table.insert(urls, url)
+      table.insert(evaluated.urls, url)
       goto continue
     end
 
     local sub_key, sub_val = M.parse_substitution(substituted_line)
     if sub_key ~= nil and sub_val ~= nil then
-      shelly_substitutions[sub_key] = sub_val
+      evaluated.shelly_substitutions[sub_key] = sub_val
       goto continue
     end
 
     local dict_key, dict_val = M.parse_dictionary(substituted_line)
     if dict_key ~= nil and dict_val ~= nil then
-      dictionary[dict_key] = dict_val
+      evaluated.dictionary[dict_key] = dict_val
       goto continue
     end
 
     if is_command_line_argument(substituted_line) then
-      table.insert(command_args, substituted_line)
+      table.insert(evaluated.command_args, substituted_line)
       goto continue
     end
 
     if opts.on_text == 'collect' then
       -- All parsers failed: start text_lines
-      table.insert(text_lines, substituted_line)
+      table.insert(evaluated.lines, substituted_line)
       found_first_processed = true
-      for append_idx = idx + 1, line_count do
+      for append_idx = i + 1, line_count do
         local append_raw = lines[append_idx]
-        local append_sub = M.substitute_line(append_raw, shelly_substitutions)
-        table.insert(text_lines, append_sub)
+        local append_sub = M.substitute_line(append_raw, evaluated.shelly_substitutions)
+        table.insert(evaluated.lines, append_sub)
       end
     end
     ::continue::
   end
 
-  return {
-    shelly_args = shelly_args,
-    shelly_substitutions = shelly_substitutions,
-    dictionary = dictionary,
-    command_args = command_args,
-    urls = urls,
-    lines = text_lines,
-  }
+  print(vim.inspect(evaluated))
+  return evaluated
 end
 
 --- Executes a shell command asynchronously using vim.system.
