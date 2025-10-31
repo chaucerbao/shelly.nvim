@@ -234,8 +234,12 @@ end
 
 --- Evaluates Shelly syntax in lines: parses arguments, substitutions, dictionaries, command args, URLs.
 --- @param lines string[] Lines to evaluate
+--- @param opts table? Optional table of options. Supported flags:
+---   on_text: 'ignore'|'collect'
 --- @return Evaluated
-function M.evaluate(lines)
+function M.evaluate(lines, opts)
+  opts = opts or {}
+
   local shelly_args, shelly_substitutions, dictionary, command_args, urls, processed_lines = {}, {}, {}, {}, {}, {}
   local found_first_processed = false
   local line_count = #lines
@@ -279,13 +283,15 @@ function M.evaluate(lines)
       goto continue
     end
 
-    -- All parsers failed: start processed_lines
-    table.insert(processed_lines, substituted_line)
-    found_first_processed = true
-    for append_idx = idx + 1, line_count do
-      local append_raw = lines[append_idx]
-      local append_sub = M.substitute_line(append_raw, shelly_substitutions)
-      table.insert(processed_lines, append_sub)
+    if opts.on_text == 'collect' then
+      -- All parsers failed: start processed_lines
+      table.insert(processed_lines, substituted_line)
+      found_first_processed = true
+      for append_idx = idx + 1, line_count do
+        local append_raw = lines[append_idx]
+        local append_sub = M.substitute_line(append_raw, shelly_substitutions)
+        table.insert(processed_lines, append_sub)
+      end
     end
     ::continue::
   end

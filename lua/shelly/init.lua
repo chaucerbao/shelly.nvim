@@ -82,7 +82,7 @@ function M.execute_selection()
   -- Concatenate context and selection lines efficiently
   local lines = vim.list_extend(vim.deepcopy(context.lines), selection.lines)
 
-  local evaluated = utils.evaluate(lines)
+  local evaluated = utils.evaluate(lines, { on_text = 'collect' })
   local use_vertical = evaluated.shelly_args.vert or evaluated.shelly_args.vertical or false
   if evaluated.shelly_args.novert or evaluated.shelly_args.novertical then
     use_vertical = false
