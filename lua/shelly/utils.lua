@@ -3,18 +3,6 @@ local M = {}
 local CODE_BLOCK_START_PATTERN = '^%s*```%s*([%w%-_]+)%s*$'
 local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
 
---- Removes code comment prefixes and suffixes from a line.
----
---- @param line string Line to clean
---- @return string Cleaned line
-
---- Checks if a line is a command line argument (e.g. -x, --flag, --flag=value).
---- @param line string Line to check
---- @return boolean True if line is a command line argument
-local function is_command_line_argument(line)
-  return line:match('^%-%w$') or line:match('^%-%-[%w%-]+$') or line:match('^%-%-[%w%-]+=[^%s]+$')
-end
-
 --- Removes common comment prefixes and suffixes from a line.
 --- Does not strip if line is a command line argument.
 --- @param line string Line to clean
@@ -33,6 +21,16 @@ local function uncomment(line)
     :gsub('%s*%*/$', '')
     :gsub('%s*%-%->$', '')
   return line
+end
+
+--- Strip backspace formatting codes (e.g., for bold/underline) from a string.
+-- Removes all "X^HX" and "_^HX" style overstrike sequences.
+-- @param line string: Input string
+-- @return string: Cleaned string
+function M.strip_backspace_codes(line)
+  -- Remove all "char<backspace>char" (bold) and "_<backspace>char" (underline) patterns
+  -- Backspace is ASCII 8
+  return line:gsub('.\8', '')
 end
 
 --- Determines if a line is inside a markdown code block, and returns block info.
@@ -175,6 +173,13 @@ function M.get_context(opts)
   return { lines = context_lines }
 end
 
+--- Checks if a line is a command line argument (e.g. -x, --flag, --flag=value).
+--- @param line string Line to check
+--- @return boolean True if line is a command line argument
+local function is_command_line_argument(line)
+  return line:match('^%-%w$') or line:match('^%-%-[%w%-]+$') or line:match('^%-%-[%w%-]+=[^%s]+$')
+end
+
 --- Parses Shelly argument lines (e.g. @@key, @@key = value, @@no:key)
 --- @param line string The line to parse
 --- @return string|nil key The argument key, or nil if not matched
@@ -218,7 +223,7 @@ end
 --- @param line string
 --- @return string|nil key, string|nil value
 function M.parse_substitution(line)
-  if line:match('^%-%-') or line:match('^%-[^-]') then
+  if is_command_line_argument(line) then
     return nil
   end
   local key, value = line:match('^%s*(%S+)%s*=%s*(.+)%s*$')
