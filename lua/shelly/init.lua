@@ -145,7 +145,7 @@ function M.execute_shell(command, opts)
     vim.notify('No shell runner found.', vim.log.levels.ERROR)
     return
   end
-  local evaluated = utils.evaluate({ command })
+  local evaluated = utils.evaluate({ command }, { parse_text_lines = true })
   runner.execute(evaluated, function(result)
     display_results(result, 'shell', { vertical = use_vertical })
   end)
