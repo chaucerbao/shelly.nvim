@@ -37,6 +37,11 @@ local function execute(evaluated, callback)
   end
 
   local method, url, start_idx = parse_method_url(evaluated.lines)
+
+  local lines_after_method_url = vim.list_slice(evaluated.lines, start_idx + 1)
+  evaluated.lines = {}
+  evaluated = utils.evaluate(lines_after_method_url, { previous = evaluated, parse_text_lines = true })
+
   local body_lines = {}
   for line_index = start_idx + 1, #evaluated.lines do
     if evaluated.lines[line_index] and evaluated.lines[line_index]:match('%S') then
