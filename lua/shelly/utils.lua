@@ -3,6 +3,13 @@ local M = {}
 local CODE_BLOCK_START_PATTERN = '^%s*```%s*([%w%-_]+)%s*$'
 local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
 
+--- Checks if a line is a command line argument (e.g. -x, --flag, --flag=value).
+--- @param line string Line to check
+--- @return boolean True if line is a command line argument
+local function is_command_line_argument(line)
+  return line:match('^%-%w$') or line:match('^%-%-[%w%-]+$') or line:match('^%-%-[%w%-]+=[^%s]+$')
+end
+
 --- Removes common comment prefixes and suffixes from a line.
 --- Does not strip if line is a command line argument.
 --- @param line string Line to clean
@@ -171,13 +178,6 @@ function M.get_context(opts)
   end
 
   return { lines = context_lines }
-end
-
---- Checks if a line is a command line argument (e.g. -x, --flag, --flag=value).
---- @param line string Line to check
---- @return boolean True if line is a command line argument
-local function is_command_line_argument(line)
-  return line:match('^%-%w$') or line:match('^%-%-[%w%-]+$') or line:match('^%-%-[%w%-]+=[^%s]+$')
 end
 
 --- Parses Shelly argument lines (e.g. @@key, @@key = value, @@no:key)
