@@ -35,9 +35,9 @@ local function display_results(result, filetype, opts)
   end
   vim.api.nvim_buf_set_lines(scratch_bufnr, 0, -1, false, output)
 
-  -- Find window showing the scratch buffer
+  -- Find window showing the scratch buffer in the current tabpage
   local scratch_winnr
-  for _, winnr in ipairs(vim.api.nvim_list_wins()) do
+  for _, winnr in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
     if vim.api.nvim_win_get_buf(winnr) == scratch_bufnr then
       scratch_winnr = winnr
       break
