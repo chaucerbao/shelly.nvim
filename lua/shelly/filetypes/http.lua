@@ -132,7 +132,7 @@ local function execute(evaluated, callback)
         final_output[#final_output + 1] = body_line
       end
     end
-    callback({ stdout = final_output, stderr = result.stderr, filetype = result_filetype })
+    callback({ stdout = final_output, stderr = result.stderr, filetype = include_headers and 'http' or result_filetype })
   end
 
   if method == 'GQL' then
