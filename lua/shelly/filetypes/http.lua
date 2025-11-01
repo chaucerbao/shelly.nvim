@@ -96,7 +96,7 @@ local function execute(evaluated, callback)
         break
       end
     end
-    local ft_map = {
+    local filetype_map = {
       ['application/json'] = 'json',
       ['text/html'] = 'html',
       ['application/xml'] = 'xml',
@@ -106,7 +106,7 @@ local function execute(evaluated, callback)
       ['text/css'] = 'css',
       ['text/markdown'] = 'markdown',
     }
-    local result_filetype = ft_map[content_type or '']
+    local filetype = filetype_map[content_type or '']
 
     local include_headers = false
     for _, arg in ipairs(evaluated.command_args) do
@@ -132,7 +132,7 @@ local function execute(evaluated, callback)
         final_output[#final_output + 1] = body_line
       end
     end
-    callback({ stdout = final_output, stderr = result.stderr, filetype = include_headers and 'http' or result_filetype })
+    callback({ stdout = final_output, stderr = result.stderr, filetype = include_headers and 'http' or filetype })
   end
 
   if method == 'GQL' then
