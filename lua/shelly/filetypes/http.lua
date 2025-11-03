@@ -43,7 +43,7 @@ local function execute(evaluated, callback)
   evaluated = utils.evaluate(lines_after_method_url, { previous = evaluated, parse_text_lines = true })
 
   local body_lines = {}
-  for line_index = start_idx + 1, #evaluated.lines do
+  for line_index = start_idx, #evaluated.lines do
     if evaluated.lines[line_index] and evaluated.lines[line_index]:match('%S') then
       body_lines[#body_lines + 1] = evaluated.lines[line_index]
     end
