@@ -29,6 +29,8 @@ local scratch_buffers = {}
 ---@param filetype string Filetype for runner-specific buffer
 ---@param opts table|nil Optional table: { vertical = boolean, size = number }
 local function display_results(result, filetype, opts)
+  opts = opts or {}
+
   -- Combine stdout and stderr efficiently
   local output = vim.list_extend(vim.deepcopy(result.stdout), {})
   if #result.stderr > 0 then
@@ -63,10 +65,9 @@ local function display_results(result, filetype, opts)
   end
 
   -- Open in split if not already visible
-  local vertical = opts and opts.vertical or false
-  local size = opts and type(opts.size) == 'number' and opts.size or nil
+  local size = type(opts.size) == 'number' and opts.size or nil
   if not scratch_winnr then
-    if vertical then
+    if opts.vertical then
       vim.cmd('vsplit')
       if size then
         vim.api.nvim_win_set_width(0, math.floor(vim.o.columns * size / 100))
@@ -97,9 +98,6 @@ function M.execute_selection()
   local context = utils.get_context({ until_line = until_line })
   local filetype = selection.filetype
 
-  local evaluated = utils.evaluate(context.lines, { previous = config[filetype] or nil })
-  evaluated = utils.evaluate(selection.lines, { previous = evaluated, parse_text_lines = true })
-
   -- Map common filetypes to runner names
   local filetype_map = {
     python = 'python',
@@ -114,6 +112,9 @@ function M.execute_selection()
     markdown = 'markdown',
   }
   local runner_name = filetype_map[filetype] or filetype
+
+  local evaluated = utils.evaluate(context.lines, { previous = config[runner_name] or nil })
+  evaluated = utils.evaluate(selection.lines, { previous = evaluated, parse_text_lines = true })
 
   ---@type boolean, { execute: FiletypeRunner } | string
   local success, runner = pcall(require, 'shelly.filetypes.' .. runner_name)
