@@ -3,6 +3,9 @@ local M = {}
 local CODE_BLOCK_START_PATTERN = '^%s*```%s*([%w%-_]+)%s*$'
 local CODE_BLOCK_END_PATTERN = '^%s*```%s*$'
 
+M.DEFAULT_EVALUATED =
+  { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
+
 --- Checks if a line is a command line argument (e.g. -x, --flag, --flag=value).
 --- @param line string Line to check
 --- @return boolean True if line is a command line argument
@@ -259,8 +262,7 @@ end
 function M.evaluate(lines, opts)
   opts = opts or {}
 
-  local evaluated = opts.previous and (vim.deepcopy(opts.previous))
-    or { shelly_args = {}, shelly_substitutions = {}, dictionary = {}, command_args = {}, urls = {}, lines = {} }
+  local evaluated = opts.previous and (vim.deepcopy(opts.previous)) or M.DEFAULT_EVALUATED
 
   local line_count = #lines
 

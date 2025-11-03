@@ -2,6 +2,24 @@ local utils = require('shelly.utils')
 
 local M = {}
 
+---@type table<string, Evaluated>
+local config = {}
+
+---@param user_config table<string, Evaluated> Config for Filetype runners
+function M.setup(user_config)
+  config = {}
+
+  for filetype, value in pairs(user_config) do
+    local filtered = {}
+
+    for key in pairs(utils.DEFAULT_EVALUATED) do
+      filtered[key] = value[key]
+    end
+
+    config[filetype] = vim.tbl_deep_extend('force', vim.deepcopy(utils.DEFAULT_EVALUATED), filtered)
+  end
+end
+
 --- Table to cache scratch buffers per filetype
 ---@type table<string, integer>
 local scratch_buffers = {}
@@ -79,7 +97,7 @@ function M.execute_selection()
   local context = utils.get_context({ until_line = until_line })
   local filetype = selection.filetype
 
-  local evaluated = utils.evaluate(context.lines)
+  local evaluated = utils.evaluate(context.lines, { previous = config[filetype] or nil })
   evaluated = utils.evaluate(selection.lines, { previous = evaluated, parse_text_lines = true })
 
   local use_vertical = evaluated.shelly_args.vertical == true
