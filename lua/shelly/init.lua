@@ -100,11 +100,6 @@ function M.execute_selection()
   local evaluated = utils.evaluate(context.lines, { previous = config[filetype] or nil })
   evaluated = utils.evaluate(selection.lines, { previous = evaluated, parse_text_lines = true })
 
-  local use_vertical = evaluated.shelly_args.vertical == true
-  if evaluated.shelly_args.novertical == true then
-    use_vertical = false
-  end
-
   -- Map common filetypes to runner names
   local filetype_map = {
     python = 'python',
@@ -128,21 +123,15 @@ function M.execute_selection()
   end
 
   runner.execute(evaluated, function(result)
-    local silent = evaluated.shelly_args.silent == true
-    if evaluated.shelly_args.nosilent == true then
-      silent = false
-    end
-    if silent then
+    if evaluated.shelly_args.silent then
       vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
       return
     end
+
     local original_win = vim.api.nvim_get_current_win()
-    display_results(result, filetype, { vertical = use_vertical })
-    local focus = evaluated.shelly_args.focus == true
-    if evaluated.shelly_args.nofocus == true then
-      focus = false
-    end
-    if not focus and vim.api.nvim_win_is_valid(original_win) then
+    display_results(result, filetype, evaluated.shelly_args)
+
+    if not evaluated.shelly_args.focus and vim.api.nvim_win_is_valid(original_win) then
       vim.api.nvim_set_current_win(original_win)
     end
   end)
@@ -153,19 +142,21 @@ end
 ---@param opts table|nil Optional table: { vertical = boolean }
 function M.execute_shell(command, opts)
   opts = opts or {}
-  local use_vertical = opts.vertical or false
+
   if type(command) ~= 'string' or command == '' then
     vim.notify('No shell command provided.', vim.log.levels.ERROR)
     return
   end
+
   local success, runner = pcall(require, 'shelly.filetypes.sh')
   if not (success and type(runner) == 'table' and type(runner.execute) == 'function') then
     vim.notify('No shell runner found.', vim.log.levels.ERROR)
     return
   end
-  local evaluated = utils.evaluate({ command }, { parse_text_lines = true })
+
+  local evaluated = utils.evaluate({ command }, { previous = config['sh'] or nil, parse_text_lines = true })
   runner.execute(evaluated, function(result)
-    display_results(result, 'shell', { vertical = use_vertical })
+    display_results(result, 'shell', evaluated.shelly_args)
   end)
 end
 
