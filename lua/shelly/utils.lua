@@ -237,7 +237,7 @@ end
 --- @param line string
 --- @return string|nil key, string|nil value
 function M.parse_dictionary(line)
-  local key, value = line:match('^%s*(%S+)%s*:%s*(.+)%s*$')
+  local key, value = line:match('^%s*([%w_-]+)%s*:%s*(.+)%s*$')
   return key, value
 end
 
