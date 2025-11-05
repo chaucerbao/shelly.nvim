@@ -32,7 +32,17 @@ local function display_results(result, filetype, opts)
   opts = opts or {}
 
   if opts.silent then
-    vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
+    local NOTIFICATIONS = {
+      http = 'HTTP call complete',
+      javascript = 'JavaScript code executed',
+      lua = 'Lua code executed',
+      postgresql = 'SQL query executed',
+      python = 'Python code executed',
+      redis = 'Redis command executed',
+      sh = 'Shell command executed',
+    }
+
+    vim.notify(NOTIFICATIONS[filetype] or (filetype:upper() .. ' runner executed'), vim.log.levels.INFO)
     return
   end
 
