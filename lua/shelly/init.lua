@@ -31,6 +31,13 @@ local scratch_buffers = {}
 local function display_results(result, filetype, opts)
   opts = opts or {}
 
+  if opts.silent then
+    vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
+    return
+  end
+
+  local original_win = vim.api.nvim_get_current_win()
+
   -- Combine stdout and stderr efficiently
   local output = vim.list_extend(vim.deepcopy(result.stdout), {})
   if #result.stderr > 0 then
@@ -86,6 +93,10 @@ local function display_results(result, filetype, opts)
 
   -- Scroll to the top of the scratch buffer
   vim.api.nvim_win_set_cursor(scratch_winnr, { 1, 0 })
+
+  if not opts.focus and vim.api.nvim_win_is_valid(original_win) then
+    vim.api.nvim_set_current_win(original_win)
+  end
 end
 
 --- Execute the main entry point for Shelly.
@@ -124,23 +135,13 @@ function M.execute_selection()
   end
 
   runner.execute(evaluated, function(result)
-    if evaluated.shelly_args.silent then
-      vim.notify('Runner finished executing (silent mode).', vim.log.levels.INFO)
-      return
-    end
-
-    local original_win = vim.api.nvim_get_current_win()
     display_results(result, filetype, evaluated.shelly_args)
-
-    if not evaluated.shelly_args.focus and vim.api.nvim_win_is_valid(original_win) then
-      vim.api.nvim_set_current_win(original_win)
-    end
   end)
 end
 
 --- Execute an arbitrary shell command and display results in a scratch buffer
 ---@param command string Shell command to execute
----@param opts table|nil Optional table: { vertical = boolean }
+---@param opts table|nil Optional table: { silent = boolean }
 function M.execute_shell(command, opts)
   opts = opts or {}
 
@@ -157,7 +158,7 @@ function M.execute_shell(command, opts)
 
   local evaluated = utils.evaluate({ command }, { previous = config['sh'] or nil, parse_text_lines = true })
   runner.execute(evaluated, function(result)
-    display_results(result, 'shell', evaluated.shelly_args)
+    display_results(result, 'shell', vim.tbl_deep_extend('force', evaluated.shelly_args, opts))
   end)
 end
 
