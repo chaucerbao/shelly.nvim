@@ -156,7 +156,12 @@ function M.execute_shell(command, opts)
     return
   end
 
-  local evaluated = utils.evaluate({ command }, { previous = config['sh'] or nil, parse_text_lines = true })
+  local expand_patterns = { '%%:%a:%a', '%%:%a', '%%' }
+  for _, pattern in ipairs(expand_patterns) do
+    command = command:gsub(pattern, vim.fn.expand)
+  end
+
+  local evaluated = utils.evaluate({ command }, { previous = config['sh'], parse_text_lines = true })
   runner.execute(evaluated, function(result)
     display_results(result, 'shell', vim.tbl_deep_extend('force', evaluated.shelly_args, opts))
   end)
