@@ -34,12 +34,10 @@ local function uncomment(line)
 end
 
 --- Strip backspace formatting codes (e.g., for bold/underline) from a string.
--- Removes all "X^HX" and "_^HX" style overstrike sequences.
--- @param line string: Input string
--- @return string: Cleaned string
+--- Removes all "X^HX" and "_^HX" style overstrike sequences.
+--- @param line string Input string
+--- @return string Cleaned string
 function M.strip_backspace_codes(line)
-  -- Remove all "char<backspace>char" (bold) and "_<backspace>char" (underline) patterns
-  -- Backspace is ASCII 8
   return line:gsub('.\8', '')
 end
 
@@ -88,7 +86,7 @@ local function get_visual_selection()
   vim.fn.setreg('"', reg_content, reg_type)
   vim.cmd('normal! gv')
   local lines = vim.split(selection_text, '\n')
-  if #lines == 0 or (lines[1] == '' and #lines == 1) then
+  if vim.tbl_isempty(lines) or (lines[1] == '' and #lines == 1) then
     vim.notify('No visual selection found', vim.log.levels.WARN)
   end
   return {

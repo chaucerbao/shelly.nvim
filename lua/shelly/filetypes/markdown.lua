@@ -1,7 +1,9 @@
 local utils = require('shelly.utils')
 
+--- Shelly Markdown filetype runner: delegates execution to the appropriate code runner.
+
 --- Executes a Markdown code block by delegating to the appropriate runner.
---- @type FiletypeRunner
+---@type FiletypeRunner
 local function execute(evaluated, callback)
   local selection = utils.get_selection()
   local filetype = selection.filetype
@@ -25,7 +27,7 @@ local function execute(evaluated, callback)
   local runner_name = filetype_map[filetype] or filetype
   local success, runner = pcall(require, 'shelly.filetypes.' .. runner_name)
   if success and runner.execute then
-    runner.execute(callback)
+    runner.execute(evaluated, callback)
   else
     vim.schedule(function()
       callback({

@@ -1,16 +1,18 @@
 local utils = require('shelly.utils')
 
+--- Shelly HTTP filetype runner: executes HTTP requests using curl.
+
 --- Checks if a string is valid JSON (object or array).
--- @param str string
--- @return boolean
+---@param str string
+---@return boolean
 local function is_json(str)
   str = str:match('^%s*(.-)%s*$')
   return (str:sub(1, 1) == '{' and str:sub(-1) == '}') or (str:sub(1, 1) == '[' and str:sub(-1) == ']')
 end
 
 --- Parses HTTP method and URL from lines.
--- @param lines string[]
--- @return string method, string url, integer idx
+---@param lines string[]
+---@return string method, string url, integer idx
 local function parse_method_url(lines)
   for line_index, line_text in ipairs(lines) do
     local http_method, request_url = line_text:match('^(%u+)%s+(%w[%w+.-]*://%S+)')
@@ -28,9 +30,9 @@ local function parse_method_url(lines)
 end
 
 --- Executes HTTP requests using curl.
---- @type FiletypeRunner
+---@type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.lines == 0 then
+  if vim.tbl_isempty(evaluated.lines) then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
     end)
@@ -65,7 +67,7 @@ local function execute(evaluated, callback)
     for _, output_line in ipairs(result.stdout) do
       if in_headers then
         if output_line == '' then
-          if #current_headers > 0 then
+          if not vim.tbl_isempty(current_headers) then
             headers[#headers + 1] = current_headers
             current_headers = {}
           end
@@ -75,7 +77,7 @@ local function execute(evaluated, callback)
         end
       else
         if output_line:match('^HTTP/%d') then
-          if #current_headers > 0 then
+          if not vim.tbl_isempty(current_headers) then
             headers[#headers + 1] = current_headers
           end
           current_headers = { output_line }
@@ -85,7 +87,7 @@ local function execute(evaluated, callback)
         end
       end
     end
-    if #current_headers > 0 then
+    if not vim.tbl_isempty(current_headers) then
       headers[#headers + 1] = current_headers
     end
 
@@ -144,7 +146,7 @@ local function execute(evaluated, callback)
     return utils.execute_shell(command, { shelly_args = evaluated.shelly_args }, handle_result)
   end
 
-  if (method == 'POST' or method == 'PUT') and #body_lines > 0 then
+  if (method == 'POST' or method == 'PUT') and not vim.tbl_isempty(body_lines) then
     if is_json(table.concat(body_lines, '\n')) then
       table.insert(command, url)
       table.insert(command, '-H')
@@ -164,7 +166,7 @@ local function execute(evaluated, callback)
     return utils.execute_shell(command, { shelly_args = evaluated.shelly_args }, handle_result)
   end
 
-  if (method == 'GET' or method == 'DELETE') and #body_lines > 0 then
+  if (method == 'GET' or method == 'DELETE') and not vim.tbl_isempty(body_lines) then
     local query_params = {}
     for _, body_line in ipairs(body_lines) do
       local key, value = body_line:match('^%s*([%w_%%%-]+)%s*=%s*(.+)$')
@@ -172,7 +174,7 @@ local function execute(evaluated, callback)
         query_params[#query_params + 1] = key .. '=' .. value
       end
     end
-    if #query_params > 0 then
+    if not vim.tbl_isempty(query_params) then
       url = url .. (url:find('?', 1, true) and '&' or '?') .. table.concat(query_params, '&')
     end
   end

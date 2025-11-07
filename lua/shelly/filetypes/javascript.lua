@@ -1,9 +1,11 @@
 local utils = require('shelly.utils')
 
+--- Shelly JavaScript filetype runner: executes JavaScript code using Node.js.
+
 --- Executes JavaScript code using Node.js.
---- @type FiletypeRunner
+---@type FiletypeRunner
 local function execute(evaluated, callback)
-  if #evaluated.lines == 0 then
+  if vim.tbl_isempty(evaluated.lines) then
     return vim.schedule(function()
       callback({ stdout = {}, stderr = { 'No code to execute' } })
     end)

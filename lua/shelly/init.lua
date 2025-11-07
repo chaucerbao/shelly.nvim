@@ -24,10 +24,10 @@ end
 ---@type table<string, integer>
 local scratch_buffers = {}
 
---- Display execution results in a scratch buffer, creating or reusing per filetype.
+--- Displays execution results in a scratch buffer, creating or reusing per filetype.
 ---@param result FiletypeRunnerResult Execution results
 ---@param filetype string Filetype for runner-specific buffer
----@param opts table|nil Optional table: { vertical = boolean, size = number }
+---@param opts table|nil Optional table: { vertical = boolean, size = number, silent = boolean, focus = boolean }
 local function display_results(result, filetype, opts)
   opts = opts or {}
 
@@ -41,7 +41,6 @@ local function display_results(result, filetype, opts)
       redis = 'Redis command executed',
       sh = 'Shell command executed',
     }
-
     vim.notify(NOTIFICATIONS[filetype] or (filetype:upper() .. ' runner executed'), vim.log.levels.INFO)
     return
   end
@@ -50,13 +49,13 @@ local function display_results(result, filetype, opts)
 
   -- Combine stdout and stderr efficiently
   local output = vim.list_extend(vim.deepcopy(result.stdout), {})
-  if #result.stderr > 0 then
-    if #output > 0 then
+  if not vim.tbl_isempty(result.stderr) then
+    if not vim.tbl_isempty(output) then
       table.insert(output, '')
     end
     vim.list_extend(output, result.stderr)
   end
-  if #output == 0 then
+  if vim.tbl_isempty(output) then
     table.insert(output, '(no output)')
   end
 
@@ -109,9 +108,7 @@ local function display_results(result, filetype, opts)
   end
 end
 
---- Execute the main entry point for Shelly.
---- Parses selection, determines filetype, loads appropriate runner, and executes code.
---- Displays results or error messages.
+--- Main entry point for Shelly: parses selection, determines filetype, loads runner, executes code, displays results or errors.
 ---@return nil
 function M.execute_selection()
   local selection = utils.get_selection()
@@ -149,9 +146,9 @@ function M.execute_selection()
   end)
 end
 
---- Execute an arbitrary shell command and display results in a scratch buffer
+--- Executes an arbitrary shell command and displays results in a scratch buffer.
 ---@param command string Shell command to execute
----@param opts table|nil Optional table: { silent = boolean }
+---@param opts table|nil Optional table: { silent = boolean, vertical = boolean, size = number }
 function M.execute_shell(command, opts)
   opts = opts or {}
 
