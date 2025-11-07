@@ -6,10 +6,10 @@ local utils = require('shelly.utils')
 ---@type FiletypeRunner
 local function execute(evaluated, callback)
   if vim.tbl_isempty(evaluated.lines) then
-    return vim.schedule(function()
-      callback({ stdout = {}, stderr = { 'No Redis commands to execute' } })
-    end)
+    callback({ stdout = {}, stderr = { 'No Redis commands to execute' } })
+    return
   end
+
   local command = { 'redis-cli' }
   local connection_string = nil
   for _, url in ipairs(evaluated.urls) do

@@ -33,9 +33,8 @@ end
 ---@type FiletypeRunner
 local function execute(evaluated, callback)
   if vim.tbl_isempty(evaluated.lines) then
-    return vim.schedule(function()
-      callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
-    end)
+    callback({ stdout = {}, stderr = { 'No HTTP request to execute' } })
+    return
   end
 
   local method, url, start_idx = parse_method_url(evaluated.lines)

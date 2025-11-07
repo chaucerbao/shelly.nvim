@@ -6,9 +6,8 @@ local utils = require('shelly.utils')
 ---@type FiletypeRunner
 local function execute(evaluated, callback)
   if vim.tbl_isempty(evaluated.lines) then
-    return vim.schedule(function()
-      callback({ stdout = {}, stderr = { 'No SQL to execute' } })
-    end)
+    callback({ stdout = {}, stderr = { 'No SQL to execute' } })
+    return
   end
 
   local command = { 'psql' }
@@ -21,9 +20,8 @@ local function execute(evaluated, callback)
   end
 
   if not connection_string then
-    return vim.schedule(function()
-      callback({ stdout = {}, stderr = { 'No connection string provided' } })
-    end)
+    callback({ stdout = {}, stderr = { 'No connection string provided' } })
+    return
   end
 
   table.insert(command, connection_string)

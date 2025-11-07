@@ -29,12 +29,7 @@ local function execute(evaluated, callback)
   if success and runner.execute then
     runner.execute(evaluated, callback)
   else
-    vim.schedule(function()
-      callback({
-        stdout = {},
-        stderr = { 'No runner found for filetype: ' .. filetype },
-      })
-    end)
+    callback({ stdout = {}, stderr = { 'No runner found for filetype: ' .. filetype } })
   end
 end
 

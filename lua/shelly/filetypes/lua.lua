@@ -6,9 +6,8 @@ local utils = require('shelly.utils')
 ---@type FiletypeRunner
 local function execute(evaluated, callback)
   if vim.tbl_isempty(evaluated.lines) then
-    return vim.schedule(function()
-      callback({ stdout = {}, stderr = { 'No code to execute' } })
-    end)
+    callback({ stdout = {}, stderr = { 'No code to execute' } })
+    return
   end
 
   -- Check if CLI lua is available
@@ -36,13 +35,9 @@ local function execute(evaluated, callback)
   end)
   print = original_print
   if ok then
-    vim.schedule(function()
-      callback({ stdout = output, stderr = {} })
-    end)
+    callback({ stdout = output, stderr = {} })
   else
-    vim.schedule(function()
-      callback({ stdout = {}, stderr = { tostring(err) } })
-    end)
+    callback({ stdout = {}, stderr = { tostring(err) } })
   end
 end
 
