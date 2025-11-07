@@ -27,7 +27,7 @@ local scratch_buffers = {}
 --- Displays execution results in a scratch buffer, creating or reusing per filetype.
 ---@param result FiletypeRunnerResult Execution results
 ---@param filetype string Filetype for runner-specific buffer
----@param opts table|nil Optional table: { vertical = boolean, size = number, silent = boolean, focus = boolean }
+---@param opts table|nil Optional table: { filetype = string focus = boolean silent = boolean, size = number, vertical = boolean }
 local function display_results(result, filetype, opts)
   opts = opts or {}
 
@@ -66,8 +66,9 @@ local function display_results(result, filetype, opts)
     vim.api.nvim_buf_set_name(scratch_bufnr, 'shelly://' .. filetype .. '-results')
     scratch_buffers[filetype] = scratch_bufnr
   end
-  if result.filetype then
-    vim.api.nvim_buf_set_option(scratch_bufnr, 'filetype', result.filetype)
+  local result_filetype = opts.filetype or result.filetype
+  if result_filetype then
+    vim.api.nvim_buf_set_option(scratch_bufnr, 'filetype', result_filetype)
   end
   vim.api.nvim_buf_set_lines(scratch_bufnr, 0, -1, false, output)
 
