@@ -118,16 +118,9 @@ function M.execute_selection()
 
   -- Map common filetypes to runner names
   local filetype_map = {
-    python = 'python',
-    lua = 'lua',
-    javascript = 'javascript',
     typescript = 'javascript',
-    sh = 'sh',
     bash = 'sh',
     sql = 'postgresql',
-    postgresql = 'postgresql',
-    redis = 'redis',
-    markdown = 'markdown',
   }
   local runner_name = filetype_map[filetype] or filetype
 
