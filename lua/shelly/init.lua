@@ -27,7 +27,7 @@ local scratch_buffers = {}
 --- Displays execution results in a scratch buffer, creating or reusing per filetype.
 ---@param result FiletypeRunnerResult Execution results
 ---@param filetype string Filetype for runner-specific buffer
----@param opts table|nil Optional table: { filetype = string focus = boolean silent = boolean, size = number, vertical = boolean }
+---@param opts table|nil Optional table: { filetype = string, focus = boolean, format = boolean, silent = boolean, size = number, vertical = boolean }
 local function display_results(result, filetype, opts)
   opts = opts or {}
 
@@ -99,6 +99,12 @@ local function display_results(result, filetype, opts)
     scratch_winnr = vim.api.nvim_get_current_win()
   else
     vim.api.nvim_set_current_win(scratch_winnr)
+  end
+
+  -- Format the scratch buffer
+  if opts.format then
+    vim.api.nvim_set_current_win(scratch_winnr)
+    vim.cmd('normal! ggVGgq')
   end
 
   -- Scroll to the top of the scratch buffer
